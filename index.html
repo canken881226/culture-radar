@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -406,10 +407,15 @@ async function startScan(){
 }
 
 async function fetchReddit(sr){
-  const res=await fetch(`https://www.reddit.com/r/${sr}/hot.json?limit=25&raw_json=1`,{headers:{'Accept':'application/json'}});
+  const res=await fetch(WORKER_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-action':'reddit','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},
+    body:JSON.stringify({subreddit:sr})
+  });
   if(!res.ok)throw new Error('HTTP '+res.status);
   const data=await res.json();
-  return data.data.children.map(p=>({title:p.data.title,score:p.data.score,comments:p.data.num_comments,sr:p.data.subreddit}));
+  if(data.error)throw new Error(data.error);
+  return data.posts||[];
 }
 
 async function callClaude(messages,maxTokens){
