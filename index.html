@@ -102,6 +102,14 @@ textarea.field-input{resize:vertical;min-height:90px;font-size:12px;line-height:
 .toast.show{transform:translateY(0);opacity:1;}
 .toast.success{border-color:var(--green);color:var(--green);}
 .toast.error{border-color:var(--red);color:var(--red);}
+.rising-item{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:border-color .2s;}
+.rising-item:hover{border-color:var(--yellow);}
+.rising-item-title{font-size:13px;color:var(--text);margin-bottom:6px;line-height:1.5;}
+.rising-item-meta{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;display:flex;gap:12px;}
+.rising-item-badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-family:'Space Mono',monospace;margin-left:8px;}
+.hot-badge{background:rgba(255,60,60,.15);color:var(--red);border:1px solid rgba(255,60,60,.3);}
+.pod-badge{background:rgba(0,224,135,.1);color:var(--green);border:1px solid rgba(0,224,135,.25);}
+.dig-result{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:16px;}
 @media(max-width:700px){.results-grid{grid-template-columns:1fr;}.panels{padding:16px;}.header{padding:12px 16px;}}
 </style>
 </head>
@@ -208,6 +216,8 @@ textarea.field-input{resize:vertical;min-height:90px;font-size:12px;line-height:
 <div id="mainApp" style="display:none;">
   <div class="tabs-bar">
     <button class="tab-btn active" onclick="switchTab('scan',this)">📡 数据抓取</button>
+    <button class="tab-btn" onclick="switchTab('rising',this)">⚡ 每日快报</button>
+    <button class="tab-btn" onclick="switchTab('dig',this)">🔍 评论深挖</button>
     <button class="tab-btn" onclick="switchTab('library',this)">📚 素材库 <span class="badge" id="libCount">0</span></button>
     <button class="tab-btn" onclick="switchTab('brief',this)">🎯 设计建议</button>
     <button class="tab-btn" onclick="switchTab('settings',this)">⚙️ 设置</button>
@@ -243,6 +253,39 @@ textarea.field-input{resize:vertical;min-height:90px;font-size:12px;line-height:
       <div class="progress-wrap" id="progressWrap"><div class="progress-bar" id="progressBar"></div></div>
       <div class="progress-log" id="progressLog"></div>
       <div id="scanResults"></div>
+    </div>
+
+    <div class="panel" id="panel-rising">
+      <div class="panel-title">每日快报</div>
+      <div class="panel-sub">// 抓取 Rising 上升帖 · 发现24小时内的早期趋势</div>
+      <div class="card">
+        <div class="card-title red">选择板块</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Rising = 刚开始热的帖子，比Hot早24-48小时</div>
+        <div class="tag-wrap" id="risingSubGroup"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <button class="scan-btn" id="risingBtn" onclick="startRising()">⚡ 抓取今日上升帖</button>
+      </div>
+      <div class="progress-wrap" id="risingProgressWrap"><div class="progress-bar" id="risingProgressBar"></div></div>
+      <div class="progress-log" id="risingLog"></div>
+      <div id="risingResults"></div>
+    </div>
+
+    <div class="panel" id="panel-dig">
+      <div class="panel-title">评论深挖</div>
+      <div class="panel-sub">// 输入帖子链接 · AI 从评论中提炼真实语言</div>
+      <div class="card">
+        <div class="card-title blue">帖子链接</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">
+          在 Reddit 找到感兴趣的帖子 → 复制链接 → 粘贴到这里
+        </div>
+        <input class="field-input" type="text" id="digUrl" placeholder="https://www.reddit.com/r/Teachers/comments/xxxxx/..." />
+        <div style="font-size:11px;color:var(--muted);margin-bottom:16px;">支持任何 Reddit 帖子链接，AI 会抓取并分析所有评论</div>
+        <button class="scan-btn" id="digBtn" onclick="startDig()">🔍 深挖这个帖子</button>
+      </div>
+      <div class="progress-wrap" id="digProgressWrap"><div class="progress-bar" id="digProgressBar"></div></div>
+      <div class="progress-log" id="digLog"></div>
+      <div id="digResults"></div>
     </div>
 
     <div class="panel" id="panel-library">
@@ -363,6 +406,7 @@ function switchTab(id,btn){
   document.getElementById('panel-'+id).classList.add('active');
   btn.classList.add('active');
   if(id==='library')renderLib();
+  if(id==='rising')initRisingTags();
   if(id==='settings')document.getElementById('settingsCount').textContent=library.length;
 }
 
@@ -408,7 +452,7 @@ async function startScan(){
 async function fetchReddit(sr){
   const res=await fetch(WORKER_URL,{
     method:'POST',
-    headers:{'Content-Type':'application/json','x-action':'reddit','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},
+    headers:{'Content-Type':'application/json','x-action':'reddit-posts','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},
     body:JSON.stringify({subreddit:sr})
   });
   if(!res.ok)throw new Error('HTTP '+res.status);
@@ -425,54 +469,64 @@ async function callClaude(messages,maxTokens){
 }
 
 async function runAnalysis(posts,keywords,tiktok){
-  const postText=posts.slice(0,50).map(p=>`[r/${p.sr}] "${p.title}" (${p.score}↑ ${p.comments}💬)`).join('\n');
-  const prompt=`你是专门为POD（Print on Demand）服装品牌做市场情报分析的专家。
-我们的产品：童装店（家庭/父母文化）和西服定制（成就/身份文化）。
+  const postText=posts.slice(0,60).map(p=>`[r/${p.sr}] "${p.title}" (${p.score}↑ ${p.comments}💬)`).join('\n');
+  const prompt=`你是专门为POD（Print on Demand）服装品牌服务的文化情报分析师。你的任务是从真实社区数据中挖掘可以直接变成爆款设计的语言和情绪。
 
-分析以下真实数据：
+我们的两个产品线：
+- 童装店：服务有孩子的父母，尤其是妈妈群体
+- 西服定制：服务有成就感需求的人群（毕业、升职、创业、婚礼等）
 
-## Reddit 热门帖子：
+【重要原则】
+- 只分析下面真实出现的数据，不要编造或泛化
+- 语言提炼必须来自帖子标题的真实表达，不能自己造句
+- 商机建议必须非常具体，给出可以直接印在衣服上的英文文案
+
+## 今日抓取的真实Reddit帖子（共${posts.length}条）：
 ${postText}
 
-## 监控关键词：
+## 我们正在监控的方向：
 ${keywords.join(', ')}
 
-## TikTok 关键词：
+## TikTok 热词补充：
 ${tiktok||'（本次未提供）'}
 
-严格按以下格式输出：
+请严格按以下格式输出分析结果：
 
 ===人群身份===
-[身份名称] | [为什么适合POD] | [来源]
-（最多6个）
+格式：[人群名称] | [他们在说什么/在意什么] | [来自哪个板块] | [POD购买动机]
+只列出数据中真实出现、有强烈身份认同感的人群，最多6个
 
 ===情绪话题===
-[话题] | [具体表现] | [强度：高/中/低]
-（最多6个）
+格式：[情绪主题] | [在帖子中的具体表现] | [热度：高/中/低] | [是否适合做设计]
+找出反复出现的情绪模式，最多6个
 
 ===语言提炼===
-[英文短语，可直接印在衣服上] | [中文说明] | [适合：童装/西服/通用]
-（最多8个）
+格式：[英文短语] | [来源灵感] | [适合产品] | [爆款潜力：高/中]
+要求：真实自然的美式口语，适合印在T恤/帽子上，2-6个单词最佳，最多10条
 
 ===趋势信号===
-[话题] | [上升/稳定/下降] | [依据]
-（最多5个）
+格式：[话题] | [上升/稳定/下降] | [哪些帖子体现了这个趋势]
+最多5个
 
 ===商机建议===
-方向1：[名称]
-人群：[目标人群]
-情绪：[切入点]
-文案：[英文1] / [英文2]
-产品：[建议类型]
-概率：[高/中]
+方向1：[方向名称]
+目标人群：[具体描述]
+核心情绪：[他们想表达什么]
+推荐文案（可直接用）：
+  - "[英文文案1]"
+  - "[英文文案2]"
+  - "[英文文案3]"
+产品类型：[童装T恤/西服定制/帽子等]
+爆款概率：[高/中]
+理由：[一句话说明潜力]
 
-方向2：[同上]
+方向2：[同上格式]
 
-方向3：[同上]
+方向3：[同上格式]
 
 ===风险提示===
-[1-2条简短提示]`;
-  return await callClaude([{role:'user',content:prompt}],2000);
+[具体说明哪些方向要避开，为什么]\`;
+  return await callClaude([{role:'user',content:prompt}],3000);
 }
 
 function getSection(text,name){const rx=new RegExp(`===\\s*${name}\\s*===([\\s\\S]*?)(?:===|$)`);const m=text.match(rx);return m?m[1].trim():'';}
@@ -591,6 +645,290 @@ function showToast(msg,type){
 function copyWorkerCode(){
   const code=document.getElementById('workerCode').textContent;
   navigator.clipboard.writeText(code).then(()=>showToast('Worker 代码已复制','success'));
+}
+
+// ─── RISING SUBREDDIT TAGS ───
+const ALL_SUBS=['Teachers','nursing','Construction','Entrepreneur','smallbusiness','introvert','socialanxiety','ADHD','Anxiety','Parenting','Mommit','Daddit','NewParents','beyondthebump','antiwork','burnout','dogs','petmemes','weddingplanning'];
+const selectedRising=new Set(['Teachers','nursing','introvert','Parenting','antiwork']);
+
+function initRisingTags(){
+  const el=document.getElementById('risingSubGroup');
+  if(!el||el.children.length>0)return;
+  ALL_SUBS.forEach(sr=>{
+    const t=document.createElement('span');
+    t.className='tag'+(selectedRising.has(sr)?' sel-red':'');
+    t.textContent='r/'+sr;
+    t.onclick=()=>{
+      if(selectedRising.has(sr)){selectedRising.delete(sr);t.classList.remove('sel-red');}
+      else{selectedRising.add(sr);t.classList.add('sel-red');}
+    };
+    el.appendChild(t);
+  });
+}
+
+// ─── RISING SCAN ───
+async function startRising(){
+  if(!API_KEY||!WORKER_URL){showToast('请先完成配置','error');return;}
+  if(!selectedRising.size){showToast('请至少选择一个板块','error');return;}
+  const btn=document.getElementById('risingBtn');
+  btn.disabled=true;
+  document.getElementById('risingProgressWrap').style.display='block';
+  document.getElementById('risingLog').style.display='block';
+  document.getElementById('risingLog').innerHTML='';
+  document.getElementById('risingResults').innerHTML='';
+  setProgressById('risingProgressBar',0);
+
+  const log=msg=>{const el=document.getElementById('risingLog');el.innerHTML+=`<div>→ ${msg}</div>`;el.scrollTop=el.scrollHeight;};
+  log('抓取 Rising 上升帖...');
+
+  let allPosts=[];
+  const subs=Array.from(selectedRising);
+  for(let i=0;i<subs.length;i++){
+    try{
+      const data=await redditFetch(subs[i],'rising');
+      allPosts.push(...data);
+      log(`✓ r/${subs[i]}: ${data.length} 条上升帖`);
+    }catch(e){log(`✗ r/${subs[i]}: ${e.message}`);}
+    setProgressById('risingProgressBar',10+(i/subs.length)*50);
+    await sleep(300);
+  }
+
+  if(!allPosts.length){log('⚠ 未获取到数据');btn.disabled=false;return;}
+
+  log(`共 ${allPosts.length} 条，AI 筛选 POD 潜力帖...`);
+  setProgressById('risingProgressBar',65);
+
+  try{
+    const filtered=await filterPODPosts(allPosts);
+    setProgressById('risingProgressBar',100);
+    log(`✅ 完成！发现 ${filtered.length} 个有POD潜力的帖子`);
+    renderRisingResults(filtered, allPosts);
+  }catch(e){log('✗ AI筛选失败：'+e.message);}
+  btn.disabled=false;
+}
+
+async function redditFetch(sr, sort){
+  const res=await fetch(WORKER_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-action':'reddit-posts','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},
+    body:JSON.stringify({subreddit:sr,sort:sort||'hot'})
+  });
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const data=await res.json();
+  if(data.error)throw new Error(data.error);
+  return data.posts||[];
+}
+
+async function filterPODPosts(posts){
+  const postText=posts.map(p=>`ID:${p.id}|r/${p.sr}|"${p.title}"|${p.score}↑${p.comments}💬`).join('
+');
+  const prompt=`你是POD设计师的选题助手。从以下Reddit帖子里，找出对POD设计最有价值的帖子。
+
+判断标准：
+- 有强烈身份认同表达（"as a teacher"、"being a nurse"等）
+- 有集体情绪共鸣（大家都有同感的日常抱怨或自豪感）
+- 有可以变成文案的具体语言
+- 评论数多说明共鸣强
+
+帖子列表：
+${postText}
+
+请输出最有价值的帖子（最多10个），格式：
+ID | 为什么有POD价值（一句话）| 潜在文案方向
+
+只输出这个格式，不要其他内容。`;
+
+  const text=await callClaude([{role:'user',content:prompt}],800);
+  const lines=text.split('
+').filter(l=>l.includes('|'));
+  const result=[];
+  for(const line of lines){
+    const parts=line.split('|').map(s=>s.trim());
+    if(parts[0]){
+      const post=posts.find(p=>p.id===parts[0]||parts[0].includes(p.id));
+      if(post) result.push({...post,podValue:parts[1]||'',textDirection:parts[2]||''});
+    }
+  }
+  return result.length>0?result:posts.slice(0,8).map(p=>({...p,podValue:'高评论量帖子',textDirection:'待分析'}));
+}
+
+function renderRisingResults(filtered, all){
+  const el=document.getElementById('risingResults');
+  if(!filtered.length){el.innerHTML='<div class="empty-state">未发现明显POD机会，可尝试其他板块</div>';return;}
+
+  el.innerHTML=`
+    <div style="font-size:14px;color:var(--yellow);margin:20px 0 12px;font-weight:700;">
+      ⚡ 今日 POD 机会帖（${filtered.length}个）<span style="font-size:11px;color:var(--muted);font-weight:400;margin-left:8px;">点击任意帖子→深挖评论</span>
+    </div>
+    ${filtered.map(p=>`
+      <div class="rising-item" onclick="quickDig('${p.url}','${p.title.replace(/'/g,"\'")}')">
+        <div class="rising-item-title">
+          <span style="color:var(--muted);font-size:11px;font-family:'Space Mono',monospace;">r/${p.sr}</span>
+          <span class="rising-item-badge pod-badge">POD潜力</span><br>
+          ${p.title}
+        </div>
+        <div style="font-size:12px;color:var(--yellow);margin:6px 0;">💡 ${p.podValue}</div>
+        <div style="font-size:12px;color:var(--blue);margin-bottom:6px;">✏️ ${p.textDirection}</div>
+        <div class="rising-item-meta">
+          <span>↑ ${p.score}</span>
+          <span>💬 ${p.comments} 评论</span>
+          <span style="color:var(--yellow);">点击深挖评论 →</span>
+        </div>
+      </div>`).join('')}
+    <div style="font-size:11px;color:var(--muted);margin-top:12px;font-family:'Space Mono',monospace;">
+      共抓取 ${all.length} 条上升帖，AI筛选出 ${filtered.length} 个高价值帖子
+    </div>`;
+}
+
+// Quick dig from rising panel
+async function quickDig(permalink, title){
+  switchTab('dig', document.querySelectorAll('.tab-btn')[2]);
+  document.getElementById('digUrl').value='https://www.reddit.com'+permalink;
+  showToast('已跳转到评论深挖，点击开始深挖','success');
+}
+
+// ─── COMMENT DIG ───
+async function startDig(){
+  if(!API_KEY||!WORKER_URL){showToast('请先完成配置','error');return;}
+  const urlInput=document.getElementById('digUrl').value.trim();
+  if(!urlInput.includes('reddit.com')){showToast('请输入有效的 Reddit 帖子链接','error');return;}
+
+  const btn=document.getElementById('digBtn');
+  btn.disabled=true;
+  document.getElementById('digProgressWrap').style.display='block';
+  document.getElementById('digLog').style.display='block';
+  document.getElementById('digLog').innerHTML='';
+  document.getElementById('digResults').innerHTML='';
+  setProgressById('digProgressBar',0);
+
+  const log=msg=>{const el=document.getElementById('digLog');el.innerHTML+=`<div>→ ${msg}</div>`;el.scrollTop=el.scrollHeight;};
+
+  // Extract permalink from URL
+  let permalink=urlInput.replace('https://www.reddit.com','').replace(/\?.*$/,'');
+  if(!permalink.startsWith('/'))permalink='/'+permalink;
+
+  log('抓取帖子评论...');
+  setProgressById('digProgressBar',20);
+
+  try{
+    const res=await fetch(WORKER_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-action':'reddit-comments','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({permalink})
+    });
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    const comments=data.comments||[];
+
+    log(`✓ 获取到 ${comments.length} 条评论，AI 深度分析中...`);
+    setProgressById('digProgressBar',50);
+
+    const analysis=await analyzeComments(urlInput, comments);
+    setProgressById('digProgressBar',95);
+
+    renderDigResults(analysis, comments.length);
+
+    // Auto-save to library
+    const newEntries=parseToLib(analysis);
+    library.push(...newEntries);
+    persist();updateBadge();
+
+    setProgressById('digProgressBar',100);
+    log(`✅ 完成！新增 ${newEntries.length} 条素材到库`);
+    showToast(`评论深挖完成，新增 ${newEntries.length} 条素材`,'success');
+  }catch(e){
+    log('✗ 失败：'+e.message);
+    showToast('深挖失败：'+e.message,'error');
+  }
+  btn.disabled=false;
+}
+
+async function analyzeComments(postUrl, comments){
+  const commentText=comments
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,40)
+    .map(c=>`[${c.score}↑] "${c.body.replace(/
+/g,' ')}"`)
+    .join('
+');
+
+  const prompt=`你是POD设计语言挖掘专家。我给你一个Reddit帖子的真实评论，你的任务是从这些真实的人话中提炼出可以直接印在衣服上的语言。
+
+帖子：${postUrl}
+
+真实评论（按点赞数排序）：
+${commentText}
+
+【重要】只分析这些真实评论，不要编造内容。
+
+请输出：
+
+===人群身份===
+格式：[人群] | [他们在评论里说的原话/典型表达] | [POD购买动机]
+最多4个
+
+===情绪话题===
+格式：[情绪] | [评论中的具体表现] | [强度：高/中/低]
+最多4个
+
+===语言提炼===
+格式：[英文短语，可直接印在衣服上] | [来自哪条评论的灵感] | [适合：童装/西服/通用] | [爆款潜力：高/中]
+要求：
+- 直接从评论语言改编，不要自己造
+- 2-6个单词，口语化，有情绪
+- 最多8条，优先高潜力
+
+===趋势信号===
+格式：[信号] | [在评论中的具体体现]
+最多3个
+
+===商机建议===
+方向1：[名称]
+目标人群：[具体描述]
+核心情绪：[他们想表达什么]
+推荐文案（直接来自评论语言）：
+  - "[英文1]"
+  - "[英文2]"
+  - "[英文3]"
+产品：[童装/西服/通用]
+爆款概率：[高/中]
+依据：[哪些评论支持这个判断]
+
+方向2：[同上]
+
+===风险提示===
+[需要注意的点]`;
+
+  return await callClaude([{role:'user',content:prompt}],2500);
+}
+
+function renderDigResults(text, commentCount){
+  const el=document.getElementById('digResults');
+  const sections=[['人群身份','red'],['情绪话题','yellow'],['语言提炼','blue'],['趋势信号','green']];
+  const renderSec=name=>{
+    const sec=getSection(text,name);
+    if(!sec)return '<div style="color:var(--muted);font-size:12px;">暂无</div>';
+    return sec.split('
+').filter(l=>l.trim()&&!l.startsWith('（')).map(line=>{
+      const parts=line.replace(/^[-*•\d.]\s*/,'').split('|').map(s=>s.trim());
+      return `<div class="result-item"><div style="color:var(--text)">${parts[0]}</div>${parts.slice(1).map(p=>`<div class="result-meta">${p}</div>`).join('')}</div>`;
+    }).join('');
+  };
+  const grid=sections.map(([n,c])=>`<div class="card"><div class="card-title ${c}">${n}</div>${renderSec(n)}</div>`).join('');
+  const sugg=getSection(text,'商机建议');
+  const risk=getSection(text,'风险提示');
+  el.innerHTML=`
+    <div style="font-size:14px;color:var(--yellow);margin:20px 0 12px;font-weight:700;">
+      🔍 评论分析结果 <span style="font-size:11px;color:var(--muted);font-weight:400;">（分析了 ${commentCount} 条真实评论）</span>
+    </div>
+    <div class="results-grid">${grid}</div>
+    ${sugg?`<div class="card" style="margin-top:14px;border-left:3px solid var(--yellow);"><div class="card-title yellow">🎯 商机建议</div><div class="result-text">${sugg}</div></div>`:''}
+    ${risk?`<div class="card" style="margin-top:10px;border-left:3px solid var(--red);"><div class="card-title red">⚠️ 风险提示</div><div class="result-text">${risk}</div></div>`:''}`;
+}
+
+function setProgressById(id,pct){
+  const el=document.getElementById(id);
+  if(el)el.style.width=pct+'%';
 }
 </script>
 </body>
