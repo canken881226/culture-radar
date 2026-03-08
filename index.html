@@ -6,11 +6,11 @@
 <title>文化雷达 · Culture Radar</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#08080f;--surface:#0f0f1a;--card:#13131f;--border:#1f1f32;--red:#ff3c3c;--yellow:#ffb800;--blue:#00d4ff;--green:#00e087;--purple:#c084fc;--orange:#fb923c;--text:#e8e8f2;--muted:#5a5a78;}
+:root{--bg:#faf7f2;--surface:#f2ede6;--card:#ffffff;--border:#e2d9ce;--red:#c0392b;--yellow:#d4830a;--blue:#1a6fa8;--green:#1a8a5a;--purple:#7c4dbd;--orange:#d4540a;--text:#1a1410;--muted:#8a7a6e;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans-serif;min-height:100vh;}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,60,60,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,60,60,0.02) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
-.header{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid var(--border);background:rgba(8,8,15,0.96);position:sticky;top:0;z-index:100;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(160,120,80,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(160,120,80,0.06) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+.header{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid var(--border);background:rgba(250,247,242,0.97);box-shadow:0 1px 0 var(--border);position:sticky;top:0;z-index:100;}
 .logo-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;color:var(--red);}
 .logo-sub{font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:1px;}
 .status-row{display:flex;align-items:center;gap:8px;}
@@ -39,7 +39,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .wg-steps strong{color:var(--text);}
 .wg-steps a{color:var(--blue);text-decoration:none;}
 .code-box{margin-top:12px;padding:12px;background:var(--surface);border-radius:6px;border:1px solid var(--border);}
-.code-pre{font-size:10px;color:var(--text);font-family:'Space Mono',monospace;line-height:1.55;white-space:pre-wrap;max-height:180px;overflow-y:auto;}
+.code-pre{font-size:10px;color:#1a1410;background:#f8f4ee;font-family:'Space Mono',monospace;line-height:1.55;white-space:pre-wrap;max-height:180px;overflow-y:auto;}
 .btn-sm{margin-top:8px;padding:6px 14px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;}
 .btn-sm:hover{border-color:var(--yellow);color:var(--yellow);}
 
@@ -49,9 +49,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .line-btn.active-kids{color:#fb923c;border-bottom-color:#fb923c;background:rgba(251,146,60,.05);}
 .line-btn.active-suit{color:var(--blue);border-bottom-color:var(--blue);background:rgba(0,212,255,.05);}
 .line-btn.active-home{color:var(--green);border-bottom-color:var(--green);background:rgba(0,224,135,.05);}
+.line-btn.active-gift{color:var(--purple);border-bottom-color:var(--purple);background:rgba(124,77,189,.05);}
 
 /* TABS */
-.tabs-bar{display:flex;border-bottom:1px solid var(--border);background:rgba(15,15,26,.8);position:sticky;top:101px;z-index:80;overflow-x:auto;}
+.tabs-bar{display:flex;border-bottom:1px solid var(--border);background:rgba(242,237,230,0.95);position:sticky;top:101px;z-index:80;overflow-x:auto;}
 .tab-btn{padding:11px 18px;background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;}
 .tab-btn.active{color:var(--text);border-bottom-color:var(--red);}
 .badge{display:inline-block;background:var(--red);color:#fff;border-radius:10px;font-size:10px;padding:1px 5px;margin-left:4px;font-family:'Space Mono',monospace;}
@@ -63,6 +64,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .panel-title.kids{color:#fb923c;}
 .panel-title.suit{color:var(--blue);}
 .panel-title.home{color:var(--green);}
+.panel-title.gift{color:var(--purple);}
 .panel-sub{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:18px;}
 .card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:14px;}
 .card-title{font-size:10px;letter-spacing:3px;font-family:'Space Mono',monospace;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
@@ -76,6 +78,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .tag.kids-on{border-color:var(--orange);color:var(--orange);background:rgba(251,146,60,.08);}
 .tag.suit-on{border-color:var(--blue);color:var(--blue);background:rgba(0,212,255,.08);}
 .tag.home-on{border-color:var(--green);color:var(--green);background:rgba(0,224,135,.08);}
+.tag.gift-on{border-color:var(--purple);color:var(--purple);background:rgba(124,77,189,.08);}
 .group-label{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;margin:9px 0 5px;text-transform:uppercase;letter-spacing:2px;}
 .check-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer;}
 .check-row input{cursor:pointer;accent-color:var(--yellow);}
@@ -89,6 +92,7 @@ textarea.field-input{resize:vertical;min-height:80px;font-size:11px;line-height:
 .scan-btn.kids-btn{background:var(--orange);}
 .scan-btn.suit-btn{background:var(--blue);color:#000;}
 .scan-btn.home-btn{background:var(--green);color:#000;}
+.scan-btn.gift-btn{background:var(--purple);color:#fff;}
 .download-btn{padding:11px 18px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;display:none;}
 .download-btn:hover{border-color:var(--yellow);color:var(--yellow);}
 .progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:4px;height:5px;margin-top:14px;overflow:hidden;display:none;}
@@ -96,7 +100,8 @@ textarea.field-input{resize:vertical;min-height:80px;font-size:11px;line-height:
 .progress-bar.kids{background:var(--orange);}
 .progress-bar.suit{background:var(--blue);}
 .progress-bar.home{background:var(--green);}
-.progress-log{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.9;margin-top:8px;max-height:100px;overflow-y:auto;display:none;}
+.progress-bar.gift{background:var(--purple);}
+.progress-log{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.9;margin-top:8px;max-height:100px;overflow-y:auto;display:none;background:var(--surface);border-radius:4px;padding:8px 10px;}
 .results-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:20px;}
 .result-item{padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
 .result-item:last-child{border-bottom:none;}
@@ -117,6 +122,7 @@ textarea.field-input{resize:vertical;min-height:80px;font-size:11px;line-height:
 .lb-kids{background:rgba(251,146,60,.15);color:var(--orange);}
 .lb-suit{background:rgba(0,212,255,.1);color:var(--blue);}
 .lb-home{background:rgba(0,224,135,.1);color:var(--green);}
+.lb-gift{background:rgba(124,77,189,.1);color:var(--purple);}
 .empty-state{color:var(--muted);font-size:13px;padding:40px 0;text-align:center;font-family:'Space Mono',monospace;}
 .btn-yellow{padding:10px 22px;background:var(--yellow);border:none;border-radius:6px;color:#000;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;}
 .btn-yellow:disabled{background:#333;color:#666;cursor:not-allowed;}
@@ -125,7 +131,7 @@ textarea.field-input{resize:vertical;min-height:80px;font-size:11px;line-height:
 .rising-item{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:9px;cursor:pointer;transition:border-color .2s;}
 .rising-item:hover{border-color:var(--yellow);}
 .pod-badge{display:inline-block;background:rgba(0,224,135,.1);color:var(--green);border:1px solid rgba(0,224,135,.25);padding:2px 7px;border-radius:3px;font-size:9px;font-family:'Space Mono',monospace;margin-left:6px;}
-.toast{position:fixed;bottom:22px;right:22px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px 16px;font-size:12px;z-index:9999;transform:translateY(60px);opacity:0;transition:all .3s;max-width:280px;pointer-events:none;}
+.toast{position:fixed;bottom:22px;right:22px;background:#2a2018;color:#fff;border:1px solid #3a3028;border-radius:8px;padding:11px 16px;font-size:12px;z-index:9999;transform:translateY(60px);opacity:0;transition:all .3s;max-width:280px;pointer-events:none;}
 .toast.show{transform:translateY(0);opacity:1;}
 .toast.success{border-color:var(--green);color:var(--green);}
 .toast.error{border-color:var(--red);color:var(--red);}
@@ -218,6 +224,7 @@ catch(e){return new Response(JSON.stringify({error:{message:e.message}}),{status
     <button class="line-btn active-kids" id="lineKids" onclick="switchLine('kids')">🧒 童装线</button>
     <button class="line-btn" id="lineSuit" onclick="switchLine('suit')">👔 西服定制线</button>
     <button class="line-btn" id="lineHome" onclick="switchLine('home')">🏠 家居线</button>
+    <button class="line-btn" id="lineGift" onclick="switchLine('gift')">🎁 礼品线</button>
   </div>
 
   <!-- 功能标签 -->
@@ -310,6 +317,7 @@ catch(e){return new Response(JSON.stringify({error:{message:e.message}}),{status
         <button class="lib-tab" onclick="filterLib('all','kids',this)">🧒 童装</button>
         <button class="lib-tab" onclick="filterLib('all','suit',this)">👔 西服</button>
         <button class="lib-tab" onclick="filterLib('all','home',this)">🏠 家居</button>
+        <button class="lib-tab" onclick="filterLib('all','gift',this)">🎁 礼品</button>
         <button class="lib-tab" onclick="filterLib('identity','all',this)">👤 人群</button>
         <button class="lib-tab" onclick="filterLib('emotion','all',this)">💥 情绪</button>
         <button class="lib-tab" onclick="filterLib('language','all',this)">💬 语言</button>
@@ -353,7 +361,8 @@ catch(e){return new Response(JSON.stringify({error:{message:e.message}}),{status
           当前素材库：<strong id="settingsCount" style="color:var(--text);">0</strong> 条
           （童装 <strong id="countKids" style="color:var(--orange);">0</strong> / 
           西服 <strong id="countSuit" style="color:var(--blue);">0</strong> / 
-          家居 <strong id="countHome" style="color:var(--green);">0</strong>）
+          家居 <strong id="countHome" style="color:var(--green);">0</strong> / 
+          礼品 <strong id="countGift" style="color:var(--purple);">0</strong>）
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn-outline" onclick="exportLibrary()">⬇ 备份素材库</button>
@@ -411,6 +420,19 @@ var LINE_CONFIG = {
     keywords:['cozy home','dog mom mug','cat mom','home decor','boho decor','minimalist home','farmhouse style','gallery wall','bedroom decor','kitchen decor','bathroom decor','living room inspo'],
     scanColor:'home-btn', barColor:'home',
     prompt_focus:'家居POD产品（马克杯、抱枕、挂画、毯子、浴室装饰、厨房装饰等）。目标买家追求有个性的家居表达，购买动机：彰显生活态度、宠物爱好者装饰、房间风格化、礼品馈赠。'
+  },
+  gift: {
+    label:'礼品线', color:'var(--purple)', cls:'gift',
+    subreddits: {
+      '礼品灵感':['GiftIdeas','CasualConversation','AskReddit'],
+      '节日礼品':['weddingplanning','Graduation','MomForAMinute'],
+      '宝宝礼品':['NewParents','beyondthebump','BabyBumps'],
+      '宠物礼品':['dogs','cats','aww'],
+      '送礼心理':['AskWomen','AskMen','relationship_advice']
+    },
+    keywords:['gift for mom','gift for teacher','baby shower gift','graduation gift','wedding gift','nurse gift','teacher appreciation','birthday gift','custom gift','personalized gift','gift for dog mom','coworker gift'],
+    scanColor:'gift-btn', barColor:'gift',
+    prompt_focus:'礼品属性POD产品（送礼场景下的童装、家居、服装类产品）。购买驱动：节日馈赠、生日、毕业、婚礼、baby shower、职业节日。关键洞察：礼品买家通常不是最终使用者，他们买的是"有意义感"和"个性化表达"，文案需要让买礼物的人感到"这正是ta需要的"。'
   }
 };
 
@@ -431,7 +453,7 @@ window.addEventListener('DOMContentLoaded', function() {
 function switchLine(line) {
   currentLine = line;
   var cfg = LINE_CONFIG[line];
-  ['kids','suit','home'].forEach(function(l) {
+  ['kids','suit','home','gift'].forEach(function(l) {
     var btn = document.getElementById('line'+l.charAt(0).toUpperCase()+l.slice(1));
     btn.className = 'line-btn' + (l===line ? ' active-'+l : '');
   });
@@ -456,8 +478,8 @@ function switchLine(line) {
   if(risingInited){ risingInited=false; }
 }
 
-var srSelected = { kids: new Set(['Mommit','beyondthebump','Daddit','Parenting','dogs']), suit: new Set(['nursing','Teachers','LawyerTalk','Entrepreneur','restaurateur']), home: new Set(['FemaleLivingSpace','malelivingspace','dogs','CozyPlaces','Parenting']) };
-var kwSelected = { kids: new Set(['mom life','boy mom','girl dad','dog mom','toddler life']), suit: new Set(['nurse life','teacher life','lawyer humor','small business owner','graduation gift']), home: new Set(['cozy home','dog mom mug','home decor','gallery wall','bedroom decor']) };
+var srSelected = { kids: new Set(['Mommit','beyondthebump','Daddit','Parenting','dogs']), suit: new Set(['nursing','Teachers','LawyerTalk','Entrepreneur','restaurateur']), home: new Set(['FemaleLivingSpace','malelivingspace','dogs','CozyPlaces','Parenting']), gift: new Set(['GiftIdeas','weddingplanning','Graduation','NewParents','dogs']) };
+var kwSelected = { kids: new Set(['mom life','boy mom','girl dad','dog mom','toddler life']), suit: new Set(['nurse life','teacher life','lawyer humor','small business owner','graduation gift']), home: new Set(['cozy home','dog mom mug','home decor','gallery wall','bedroom decor']), gift: new Set(['gift for mom','baby shower gift','graduation gift','personalized gift','custom gift']) };
 
 function buildSrTags() {
   var cfg = LINE_CONFIG[currentLine];
@@ -805,7 +827,7 @@ function filterLib(type,line,btn){
 
 function renderLib(){
   var labels={identity:'人群',emotion:'情绪',language:'语言',trend:'趋势'};
-  var lineLabels={kids:'童装',suit:'西服',home:'家居'};
+  var lineLabels={kids:'童装',suit:'西服',home:'家居',gift:'礼品'};
   var list=library.filter(function(e){
     var okType=(libTypeFilter==='all'||e.type===libTypeFilter);
     var okLine=(libLineFilter==='all'||e.line===libLineFilter);
@@ -829,6 +851,7 @@ function updateSettingsCounts(){
   document.getElementById('countKids').textContent=library.filter(function(e){return e.line==='kids';}).length;
   document.getElementById('countSuit').textContent=library.filter(function(e){return e.line==='suit';}).length;
   document.getElementById('countHome').textContent=library.filter(function(e){return e.line==='home';}).length;
+  document.getElementById('countGift').textContent=library.filter(function(e){return e.line==='gift';}).length;
 }
 
 // ── BRIEF ──
@@ -844,7 +867,8 @@ async function generateBrief(line){
   var briefPrompts={
     kids:'你是童装POD品牌的设计策略顾问。基于以下市场情报，生成本周童装/亲子装开发建议。\n\n产品范围：儿童T恤、连体衣、亲子装、宝宝礼品套装、婴儿毯、帽子等。\n核心客群：美国妈妈群体（20-40岁），购买驱动：身份表达（boy mom/girl mom等）、情感共鸣、礼品馈赠。',
     suit:'你是西服定制POD品牌的设计策略顾问。基于以下市场情报，生成本周西服/正装定制开发建议。\n\n产品范围：定制西服、衬衫、领带、袖扣、毕业礼品、职业周边产品。\n核心客群：美国职业人士（护士/教师/律师/企业主/餐饮业主），购买驱动：职业身份认同、成就感表达、重要场合礼品。',
-    home:'你是家居POD品牌的设计策略顾问。基于以下市场情报，生成本周家居产品开发建议。\n\n产品范围：马克杯、抱枕、挂画/帆布画、毯子、浴室垫、厨房装饰、卧室装饰。\n核心客群：美国家居爱好者（宠物主人/有审美的女性/男性），购买驱动：生活态度表达、宠物爱好、家居风格化、礼品。'
+    home:'你是家居POD品牌的设计策略顾问。基于以下市场情报，生成本周家居产品开发建议。\n\n产品范围：马克杯、抱枕、挂画/帆布画、毯子、浴室垫、厨房装饰、卧室装饰。\n核心客群：美国家居爱好者（宠物主人/有审美的女性/男性），购买驱动：生活态度表达、宠物爱好、家居风格化、礼品。',
+    gift:'你是POD礼品线的设计策略顾问。基于以下市场情报，生成本周礼品场景产品开发建议。\n\n产品范围：适合作为礼品的POD产品，含童装礼品套装、个性马克杯、定制抱枝、挂画、教师/护士感谢礼品等。\n核心洞察：礼品买家购买的不是产品本身，而是“我了解你”的感觉。文案需让送礼人一眼看到“这就是ta”。主要场景：baby shower、毕业典礼、婚礼、教师节、护士节、圣诞、生日。'
   };
   
   var prompt=briefPrompts[line]+'\n\n【素材库数据（共'+lineLib.length+'条）】\n'+libText+'\n\n请输出「本周'+cfg.label+'开发建议报告」：\n\n'
@@ -890,7 +914,7 @@ function exportLibrary(){
 
 function exportLibraryTxt(){
   if(!library.length){showToast('素材库为空','error');return;}
-  var lineLabels={kids:'童装',suit:'西服',home:'家居'};
+  var lineLabels={kids:'童装',suit:'西服',home:'家居',gift:'礼品'};
   var typeLabels={identity:'人群身份',emotion:'情绪话题',language:'语言提炼',trend:'趋势信号'};
   var lines=['文化雷达素材库导出 · '+new Date().toLocaleDateString('zh-CN'),'共 '+library.length+' 条','='.repeat(50),''];
   ['kids','suit','home'].forEach(function(line){
