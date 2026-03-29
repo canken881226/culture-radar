@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文化雷达 · Culture Radar</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf7f2;--surface:#f2ede6;--card:#ffffff;--border:#e2d9ce;--red:#c0392b;--yellow:#d4830a;--blue:#1a6fa8;--green:#1a8a5a;--purple:#7c4dbd;--orange:#d4540a;--text:#1a1410;--muted:#8a7a6e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(160,120,80,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(160,120,80,0.06) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+.header{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid var(--border);background:rgba(250,247,242,0.97);box-shadow:0 1px 0 var(--border);position:sticky;top:0;z-index:100;}
+.logo-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;color:var(--red);}
+.logo-sub{font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:1px;}
+.status-row{display:flex;align-items:center;gap:8px;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);}
+.dot.on{background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.status-txt{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
+.setup-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 56px);padding:20px;position:relative;z-index:1;}
+.setup-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:32px;max-width:560px;width:100%;}
+.setup-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:3px;color:var(--red);margin-bottom:6px;}
+.setup-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.7;}
+.step-row{display:flex;align-items:flex-start;margin-bottom:18px;gap:12px;}
+.step-num{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;font-size:11px;font-weight:700;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.step-content{flex:1;}
+.field-label{font-size:11px;letter-spacing:2px;color:var(--muted);font-family:'Space Mono',monospace;text-transform:uppercase;margin-bottom:7px;display:block;}
+.field-input{width:100%;padding:10px 13px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;outline:none;margin-bottom:5px;transition:border-color .2s;}
+.field-input:focus{border-color:var(--red);}
+.field-hint{font-size:11px;color:var(--muted);line-height:1.7;}
+.field-hint a{color:var(--blue);text-decoration:none;}
+.btn-primary{width:100%;padding:12px;background:var(--red);border:none;border-radius:6px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:opacity .2s;margin-top:10px;}
+.btn-primary:hover{opacity:.85;}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.worker-guide{margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
+.wg-title{font-size:11px;color:var(--yellow);font-family:'Space Mono',monospace;letter-spacing:2px;margin-bottom:12px;}
+.wg-steps{font-size:12px;color:var(--muted);line-height:2.1;}
+.wg-steps strong{color:var(--text);}
+.wg-steps a{color:var(--blue);text-decoration:none;}
+.code-box{margin-top:12px;padding:12px;background:var(--surface);border-radius:6px;border:1px solid var(--border);}
+.code-pre{font-size:10px;color:#1a1410;background:#f8f4ee;font-family:'Space Mono',monospace;line-height:1.55;white-space:pre-wrap;max-height:180px;overflow-y:auto;}
+.btn-sm{margin-top:8px;padding:6px 14px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;}
+.btn-sm:hover{border-color:var(--yellow);color:var(--yellow);}
+
+/* LINE SWITCHER */
+.line-switcher{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:56px;z-index:90;overflow-x:auto;}
+.line-btn{flex:1;min-width:100px;padding:12px 8px;background:none;border:none;border-bottom:3px solid transparent;color:var(--muted);font-size:13px;cursor:pointer;font-weight:600;transition:all .2s;font-family:'Noto Sans SC',sans-serif;white-space:nowrap;}
+.line-btn.active-kids{color:#fb923c;border-bottom-color:#fb923c;background:rgba(251,146,60,.05);}
+.line-btn.active-suit{color:var(--blue);border-bottom-color:var(--blue);background:rgba(0,212,255,.05);}
+.line-btn.active-home{color:var(--green);border-bottom-color:var(--green);background:rgba(0,224,135,.05);}
+.line-btn.active-gift{color:var(--purple);border-bottom-color:var(--purple);background:rgba(124,77,189,.05);}
+
+/* TABS */
+.tabs-bar{display:flex;border-bottom:1px solid var(--border);background:rgba(242,237,230,0.95);position:sticky;top:101px;z-index:80;overflow-x:auto;}
+.tab-btn{padding:11px 18px;background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;font-family:'Noto Sans SC',sans-serif;}
+.tab-btn.active{color:var(--text);border-bottom-color:var(--red);}
+.badge{display:inline-block;background:var(--red);color:#fff;border-radius:10px;font-size:10px;padding:1px 5px;margin-left:4px;font-family:'Space Mono',monospace;}
+
+.panels{padding:22px 26px;position:relative;z-index:1;}
+.panel{display:none;}
+.panel.active{display:block;}
+.panel-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:3px;}
+.panel-title.kids{color:#fb923c;}
+.panel-title.suit{color:var(--blue);}
+.panel-title.home{color:var(--green);}
+.panel-title.gift{color:var(--purple);}
+.panel-sub{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:18px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:14px;}
+.card-title{font-size:10px;letter-spacing:3px;font-family:'Space Mono',monospace;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.card-title.red{color:var(--red);}
+.card-title.yellow{color:var(--yellow);}
+.card-title.blue{color:var(--blue);}
+.card-title.green{color:var(--green);}
+.card-title.orange{color:var(--orange);}
+.tag-wrap{display:flex;flex-wrap:wrap;gap:5px;}
+.tag{padding:4px 11px;border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);background:var(--card);cursor:pointer;transition:all .15s;font-family:'Space Mono',monospace;user-select:none;}
+.tag.kids-on{border-color:var(--orange);color:var(--orange);background:rgba(251,146,60,.08);}
+.tag.suit-on{border-color:var(--blue);color:var(--blue);background:rgba(0,212,255,.08);}
+.tag.home-on{border-color:var(--green);color:var(--green);background:rgba(0,224,135,.08);}
+.tag.gift-on{border-color:var(--purple);color:var(--purple);background:rgba(124,77,189,.08);}
+.group-label{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;margin:9px 0 5px;text-transform:uppercase;letter-spacing:2px;}
+.check-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer;}
+.check-row input{cursor:pointer;accent-color:var(--yellow);}
+.check-row span{font-size:13px;color:var(--muted);}
+textarea.field-input{resize:vertical;min-height:80px;font-size:11px;line-height:1.6;}
+.tiktok-box{display:none;margin-top:4px;}
+.tiktok-box.show{display:block;}
+.action-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
+.scan-btn{padding:11px 28px;background:var(--red);border:none;border-radius:6px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;}
+.scan-btn:disabled{background:#333;color:#666;cursor:not-allowed;}
+.scan-btn.kids-btn{background:var(--orange);}
+.scan-btn.suit-btn{background:var(--blue);color:#000;}
+.scan-btn.home-btn{background:var(--green);color:#000;}
+.scan-btn.gift-btn{background:var(--purple);color:#fff;}
+.download-btn{padding:11px 18px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;display:none;}
+.download-btn:hover{border-color:var(--yellow);color:var(--yellow);}
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:4px;height:5px;margin-top:14px;overflow:hidden;display:none;}
+.progress-bar{height:100%;width:0%;transition:width .4s;border-radius:4px;}
+.progress-bar.kids{background:var(--orange);}
+.progress-bar.suit{background:var(--blue);}
+.progress-bar.home{background:var(--green);}
+.progress-bar.gift{background:var(--purple);}
+.progress-log{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.9;margin-top:8px;max-height:100px;overflow-y:auto;display:none;background:var(--surface);border-radius:4px;padding:8px 10px;}
+.results-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:20px;}
+.result-item{padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.result-item:last-child{border-bottom:none;}
+.result-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.result-text{white-space:pre-wrap;font-size:12px;line-height:1.8;}
+.lib-tabs{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap;}
+.lib-tab{padding:6px 14px;background:var(--card);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--muted);cursor:pointer;transition:all .2s;font-family:'Noto Sans SC',sans-serif;}
+.lib-tab.active{border-color:var(--yellow);color:var(--yellow);}
+.lib-entry{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px 13px;display:flex;gap:9px;align-items:flex-start;margin-bottom:7px;}
+.lib-tag{padding:2px 8px;border-radius:3px;font-size:9px;font-family:'Space Mono',monospace;text-transform:uppercase;white-space:nowrap;flex-shrink:0;}
+.lib-tag.identity{background:rgba(255,60,60,.12);color:var(--red);border:1px solid rgba(255,60,60,.25);}
+.lib-tag.emotion{background:rgba(255,184,0,.1);color:var(--yellow);border:1px solid rgba(255,184,0,.25);}
+.lib-tag.language{background:rgba(0,212,255,.08);color:var(--blue);border:1px solid rgba(0,212,255,.2);}
+.lib-tag.trend{background:rgba(0,224,135,.08);color:var(--green);border:1px solid rgba(0,224,135,.2);}
+.lib-content{flex:1;font-size:12px;line-height:1.5;}
+.lib-meta-txt{font-size:10px;color:var(--muted);margin-top:2px;}
+.lib-line-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-family:'Space Mono',monospace;margin-right:5px;}
+.lb-kids{background:rgba(251,146,60,.15);color:var(--orange);}
+.lb-suit{background:rgba(0,212,255,.1);color:var(--blue);}
+.lb-home{background:rgba(0,224,135,.1);color:var(--green);}
+.lb-gift{background:rgba(124,77,189,.1);color:var(--purple);}
+.empty-state{color:var(--muted);font-size:13px;padding:40px 0;text-align:center;font-family:'Space Mono',monospace;}
+.btn-yellow{padding:10px 22px;background:var(--yellow);border:none;border-radius:6px;color:#000;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans SC',sans-serif;}
+.btn-yellow:disabled{background:#333;color:#666;cursor:not-allowed;}
+.btn-outline{padding:10px 18px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;}
+.btn-outline:hover{border-color:var(--yellow);color:var(--yellow);}
+.rising-item{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:9px;cursor:pointer;transition:border-color .2s;}
+.rising-item:hover{border-color:var(--yellow);}
+.pod-badge{display:inline-block;background:rgba(0,224,135,.1);color:var(--green);border:1px solid rgba(0,224,135,.25);padding:2px 7px;border-radius:3px;font-size:9px;font-family:'Space Mono',monospace;margin-left:6px;}
+.toast{position:fixed;bottom:22px;right:22px;background:#2a2018;color:#fff;border:1px solid #3a3028;border-radius:8px;padding:11px 16px;font-size:12px;z-index:9999;transform:translateY(60px);opacity:0;transition:all .3s;max-width:280px;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{border-color:var(--green);color:var(--green);}
+.toast.error{border-color:var(--red);color:var(--red);}
+.lib-export-row{display:flex;gap:8px;margin-bottom:16px;}
+.select-all-row{display:flex;gap:6px;margin-bottom:8px;align-items:center;}
+.btn-select-all{padding:4px 12px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:11px;cursor:pointer;font-family:"Space Mono",monospace;transition:all .15s;}
+.btn-select-all:hover{border-color:var(--red);color:var(--red);}
+.btn-select-all.kids-sa:hover{border-color:var(--orange);color:var(--orange);}
+.btn-select-all.suit-sa:hover{border-color:var(--blue);color:var(--blue);}
+.btn-select-all.home-sa:hover{border-color:var(--green);color:var(--green);}
+.btn-select-all.gift-sa:hover{border-color:var(--purple);color:var(--purple);}
+.select-count{font-size:11px;color:var(--muted);font-family:"Space Mono",monospace;margin-left:4px;}
+.opp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:18px;}
+.opp-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;position:relative;}
+.opp-card-head{font-size:10px;letter-spacing:2px;font-family:"Space Mono",monospace;text-transform:uppercase;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.opp-card-head.pain{color:#c0392b;}
+.opp-card-head.gap{color:var(--blue);}
+.opp-card-head.product{color:var(--green);}
+.opp-card-head.design{color:var(--yellow);}
+.opp-card-head.compete{color:var(--muted);}
+.opp-item{padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;line-height:1.6;}
+.opp-item:last-child{border-bottom:none;}
+.opp-item .opp-score{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-family:"Space Mono",monospace;margin-left:6px;vertical-align:middle;}
+.opp-score.high{background:rgba(192,57,43,.12);color:#c0392b;border:1px solid rgba(192,57,43,.25);}
+.opp-score.mid{background:rgba(212,131,10,.1);color:var(--yellow);border:1px solid rgba(212,131,10,.2);}
+.opp-map{background:var(--card);border:2px solid var(--purple);border-radius:10px;padding:20px;margin-top:18px;}
+.opp-map-title{font-family:"Bebas Neue",sans-serif;font-size:18px;letter-spacing:2px;color:var(--purple);margin-bottom:14px;}
+.opp-tag{display:inline-block;padding:4px 10px;border-radius:12px;font-size:11px;font-family:"Space Mono",monospace;margin:3px;cursor:default;}
+.opp-tag.product-tag{background:rgba(26,106,168,.1);color:var(--blue);border:1px solid rgba(26,106,168,.2);}
+.opp-tag.design-tag{background:rgba(26,138,90,.1);color:var(--green);border:1px solid rgba(26,138,90,.2);}
+.opp-tag.warn-tag{background:rgba(192,57,43,.08);color:#c0392b;border:1px solid rgba(192,57,43,.15);}
+.explore-sr-section{margin-bottom:12px;}
+.explore-sr-title{font-size:11px;color:var(--purple);font-family:"Space Mono",monospace;font-weight:700;letter-spacing:1px;margin-bottom:6px;}
+@media(max-width:700px){.opp-grid{grid-template-columns:1fr;}}
+@media(max-width:700px){.results-grid{grid-template-columns:1fr;}.panels{padding:14px;}.header{padding:12px 16px;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div><div class="logo-title">CULTURE RADAR</div><div class="logo-sub">文化雷达 · POD设计驱动系统 v2.0</div></div>
+  <div class="status-row"><div class="dot" id="statusDot"></div><div class="status-txt" id="statusTxt">未连接</div></div>
+</div>
+
+<!-- SETUP -->
+<div id="setupScreen" style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 56px);padding:20px;position:relative;z-index:1;">
+  <div class="setup-card">
+    <div class="setup-title">初始化配置</div>
+    <div class="setup-sub">首次使用填写以下两项，之后自动保存，无需重复填写。</div>
+    <div class="step-row">
+      <span class="step-num">1</span>
+      <div class="step-content">
+        <label class="field-label">Cloudflare Worker 地址</label>
+        <input class="field-input" type="text" id="workerInput" placeholder="https://culture-radar.你的名字.workers.dev" />
+        <div class="field-hint">部署 Worker 后把地址复制到这里。</div>
+      </div>
+    </div>
+    <div class="step-row">
+      <span class="step-num">2</span>
+      <div class="step-content">
+        <label class="field-label">Claude API Key</label>
+        <input class="field-input" type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." />
+        <div class="field-hint">在 <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com/settings/keys</a> 创建，每次运行约 $0.01–0.05。</div>
+      </div>
+    </div>
+    <button class="btn-primary" id="connectBtn" onclick="doConnect()">连接并开始使用 →</button>
+    <div class="worker-guide">
+      <div class="wg-title">▸ CLOUDFLARE WORKER 部署说明</div>
+      <div class="wg-steps">
+        1. 打开 <a href="https://cloudflare.com" target="_blank">cloudflare.com</a> 注册并登录<br>
+        2. 左侧点 <strong>Workers &amp; Pages</strong> → <strong>Create</strong> → <strong>Create Worker</strong><br>
+        3. 随意填写名字 → 点 <strong>Deploy</strong><br>
+        4. 点 <strong>Edit Code</strong> → 清空全部内容 → 粘贴下方代码 → 点 <strong>Deploy</strong><br>
+        5. 复制 Worker 网址填到上面第①步
+      </div>
+      <div class="code-box">
+        <div style="font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:8px;">WORKER 代码</div>
+        <pre class="code-pre" id="workerCode">const CORS={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type,x-api-key,anthropic-version,x-action"};
+const RH={"User-Agent":"CultureRadar/2.0","Accept":"application/json"};
+export default{async fetch(request,env){
+if(request.method==="OPTIONS")return new Response(null,{headers:CORS});
+const action=request.headers.get("x-action");
+const apiKey=request.headers.get("x-api-key");
+if(action==="reddit-posts"){
+  try{const{subreddit,sort}=await request.json();
+  const res=await fetch("https://www.reddit.com/r/"+subreddit+"/"+(sort||"hot")+".json?limit=25&raw_json=1",{headers:RH});
+  if(!res.ok)throw new Error("Reddit "+res.status);
+  const data=await res.json();
+  const posts=data.data.children.map(p=>({id:p.data.id,title:p.data.title,score:p.data.score,comments:p.data.num_comments,sr:p.data.subreddit,url:p.data.permalink}));
+  return new Response(JSON.stringify({posts}),{headers:{"Content-Type":"application/json",...CORS}});}
+  catch(e){return new Response(JSON.stringify({error:e.message}),{status:500,headers:{"Content-Type":"application/json",...CORS}});}}
+if(action==="reddit-comments"){
+  try{const{permalink}=await request.json();
+  const res=await fetch("https://www.reddit.com"+permalink+".json?limit=50&depth=2&raw_json=1",{headers:RH});
+  if(!res.ok)throw new Error("Reddit "+res.status);
+  const data=await res.json();
+  const comments=[];
+  const extract=(ch)=>{for(const c of ch){if(c.kind==="t1"&&c.data.body&&c.data.body!=="[deleted]"){comments.push({body:c.data.body.slice(0,500),score:c.data.score});if(c.data.replies&&c.data.replies.data)extract(c.data.replies.data.children);}}};
+  if(data[1]&&data[1].data)extract(data[1].data.children);
+  return new Response(JSON.stringify({comments:comments.slice(0,60)}),{headers:{"Content-Type":"application/json",...CORS}});}
+  catch(e){return new Response(JSON.stringify({error:e.message}),{status:500,headers:{"Content-Type":"application/json",...CORS}});}}
+if(request.method!=="POST")return new Response("Method not allowed",{status:405,headers:CORS});
+try{const body=await request.json();
+if(!apiKey||!apiKey.startsWith("sk-ant"))return new Response(JSON.stringify({error:{message:"Invalid API key"}}),{status:401,headers:{"Content-Type":"application/json",...CORS}});
+const response=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01"},body:JSON.stringify(body)});
+const data=await response.json();
+return new Response(JSON.stringify(data),{status:response.status,headers:{"Content-Type":"application/json",...CORS}});}
+catch(e){return new Response(JSON.stringify({error:{message:e.message}}),{status:500,headers:{"Content-Type":"application/json",...CORS}});}}}</pre>
+        <button class="btn-sm" onclick="copyWorkerCode()">📋 复制 Worker 代码</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display:none;">
+
+  <!-- 产品线切换 -->
+  <div class="line-switcher">
+    <button class="line-btn active-kids" id="lineKids" onclick="switchLine('kids')">🧒 童装线</button>
+    <button class="line-btn" id="lineSuit" onclick="switchLine('suit')">👔 西服定制线</button>
+    <button class="line-btn" id="lineHome" onclick="switchLine('home')">🏠 家居线</button>
+    <button class="line-btn" id="lineGift" onclick="switchLine('gift')">🎁 礼品线</button>
+  </div>
+
+  <!-- 功能标签 -->
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('scan',this)">📡 数据抓取</button>
+    <button class="tab-btn" onclick="switchTab('rising',this)">⚡ 每日快报</button>
+    <button class="tab-btn" onclick="switchTab('dig',this)">🔍 评论深挖</button>
+    <button class="tab-btn" onclick="switchTab('library',this)">📚 素材库 <span class="badge" id="libCount">0</span></button>
+    <button class="tab-btn" onclick="switchTab('brief',this)">🎯 开发建议</button>
+    <button class="tab-btn" onclick="switchTab('explore',this)">🔭 产品探索</button>
+    <button class="tab-btn" onclick="switchTab('settings',this)">⚙️ 设置</button>
+  </div>
+
+  <div class="panels">
+
+    <!-- SCAN -->
+    <div class="panel active" id="panel-scan">
+      <div class="panel-title kids" id="scanTitle">数据抓取</div>
+      <div class="panel-sub" id="scanSub">// 童装线 · 选择板块 · 开始抓取并 AI 分析</div>
+      <div class="card">
+        <div class="card-title orange" id="srCardTitle">监控板块（可多选）</div>
+        <div class="select-all-row">
+          <button class="btn-select-all" id="srSelectAllBtn" onclick="selectAllSubs(true)">全选</button>
+          <button class="btn-select-all" onclick="selectAllSubs(false)">取消全选</button>
+          <span class="select-count" id="srCount"></span>
+        </div>
+        <div id="srTagsWrap"></div>
+      </div>
+      <div class="card">
+        <div class="card-title blue">关键词方向</div>
+        <div class="select-all-row">
+          <button class="btn-select-all" onclick="selectAllKws(true)">全选</button>
+          <button class="btn-select-all" onclick="selectAllKws(false)">取消全选</button>
+          <span class="select-count" id="kwCount"></span>
+        </div>
+        <div class="tag-wrap" id="kwGroup"></div>
+      </div>
+      <div class="card">
+        <label class="check-row"><input type="checkbox" id="tiktokCheck" onchange="toggleTiktok()"><span>加入 TikTok Creative Center 关键词</span></label>
+        <div class="tiktok-box" id="tiktokBox">
+          <a style="font-size:12px;color:var(--blue);display:inline-flex;gap:5px;margin-bottom:7px;text-decoration:none;" href="https://ads.tiktok.com/business/creativecenter/trend-keywords/pc/en" target="_blank">🔗 TikTok Creative Center Keywords →</a>
+          <textarea class="field-input" id="tiktokText" placeholder="每行一个关键词..."></textarea>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="scan-btn kids-btn" id="scanBtn" onclick="startScan()">🚀 开始抓取并分析</button>
+        <button class="download-btn" id="scanDownloadBtn" onclick="downloadResult('scan')">⬇ 下载分析结果</button>
+      </div>
+      <div class="progress-wrap" id="progressWrap"><div class="progress-bar kids" id="progressBar"></div></div>
+      <div class="progress-log" id="progressLog"></div>
+      <div id="scanResults"></div>
+    </div>
+
+    <!-- RISING -->
+    <div class="panel" id="panel-rising">
+      <div class="panel-title kids" id="risingTitle">每日快报</div>
+      <div class="panel-sub">// 抓取 Rising 上升帖 · 发现早期趋势 · 点击帖子深挖评论</div>
+      <div class="card">
+        <div class="card-title orange">板块选择</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:9px;">Rising = 刚开始热的帖子，比 Hot 早24-48小时发现趋势</div>
+        <div class="select-all-row">
+          <button class="btn-select-all" onclick="selectAllRising(true)">全选</button>
+          <button class="btn-select-all" onclick="selectAllRising(false)">取消全选</button>
+          <span class="select-count" id="risingCount"></span>
+        </div>
+        <div class="tag-wrap" id="risingTags"></div>
+      </div>
+      <div class="action-row">
+        <button class="scan-btn kids-btn" id="risingBtn" onclick="startRising()">⚡ 抓取今日上升帖</button>
+        <button class="download-btn" id="risingDownloadBtn" onclick="downloadResult('rising')">⬇ 下载</button>
+      </div>
+      <div class="progress-wrap" id="risingProgressWrap"><div class="progress-bar kids" id="risingProgressBar"></div></div>
+      <div class="progress-log" id="risingLog"></div>
+      <div id="risingResults"></div>
+    </div>
+
+    <!-- DIG -->
+    <div class="panel" id="panel-dig">
+      <div class="panel-title kids" id="digTitle">评论深挖</div>
+      <div class="panel-sub">// 输入 Reddit 帖子链接 · AI 从真实评论中提炼设计语言</div>
+      <div class="card">
+        <div class="card-title blue">帖子链接</div>
+        <input class="field-input" type="text" id="digUrl" placeholder="https://www.reddit.com/r/Mommit/comments/xxxxx/..." style="margin-bottom:4px;"/>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:14px;">粘贴任何 Reddit 帖子链接，AI 分析全部评论提炼真实语言</div>
+        <div class="action-row">
+          <button class="scan-btn" id="digBtn" onclick="startDig()">🔍 深挖评论</button>
+          <button class="download-btn" id="digDownloadBtn" onclick="downloadResult('dig')">⬇ 下载</button>
+        </div>
+      </div>
+      <div class="progress-wrap" id="digProgressWrap"><div class="progress-bar" id="digProgressBar"></div></div>
+      <div class="progress-log" id="digLog"></div>
+      <div id="digResults"></div>
+    </div>
+
+    <!-- LIBRARY -->
+    <div class="panel" id="panel-library">
+      <div class="panel-title" style="color:var(--yellow);">素材库</div>
+      <div class="panel-sub">// 历次抓取积累 · 长期保存 · 按产品线和类型筛选</div>
+      <div class="lib-export-row">
+        <button class="btn-outline" onclick="exportLibrary()">⬇ 导出素材库（JSON）</button>
+        <button class="btn-outline" onclick="exportLibraryTxt()">⬇ 导出素材库（TXT）</button>
+        <label class="btn-outline" style="cursor:pointer;">📥 导入素材库 <input type="file" accept=".json" style="display:none;" onchange="importLibrary(this)"></label>
+      </div>
+      <div class="lib-tabs">
+        <button class="lib-tab active" onclick="filterLib('all','all',this)">全部</button>
+        <button class="lib-tab" onclick="filterLib('all','kids',this)">🧒 童装</button>
+        <button class="lib-tab" onclick="filterLib('all','suit',this)">👔 西服</button>
+        <button class="lib-tab" onclick="filterLib('all','home',this)">🏠 家居</button>
+        <button class="lib-tab" onclick="filterLib('all','gift',this)">🎁 礼品</button>
+        <button class="lib-tab" onclick="filterLib('identity','all',this)">👤 人群</button>
+        <button class="lib-tab" onclick="filterLib('emotion','all',this)">💥 情绪</button>
+        <button class="lib-tab" onclick="filterLib('language','all',this)">💬 语言</button>
+        <button class="lib-tab" onclick="filterLib('trend','all',this)">📈 趋势</button>
+      </div>
+      <div id="libEntries"></div>
+    </div>
+
+    <!-- BRIEF -->
+    <div class="panel" id="panel-brief">
+      <div class="panel-title" style="color:var(--yellow);">开发建议</div>
+      <div class="panel-sub">// 基于素材库 · AI 针对各产品线生成具体开发方向</div>
+      <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+        <button class="scan-btn kids-btn" onclick="generateBrief('kids')">🧒 童装开发建议</button>
+        <button class="scan-btn suit-btn" onclick="generateBrief('suit')">👔 西服开发建议</button>
+        <button class="scan-btn home-btn" onclick="generateBrief('home')">🏠 家居开发建议</button>
+        <button class="scan-btn gift-btn" onclick="generateBrief('gift')">🎁 礼品开发建议</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+        <button class="btn-outline" onclick="copyBrief()">📋 复制</button>
+        <button class="btn-outline" onclick="downloadBrief()">⬇ 下载建议报告</button>
+        <button class="btn-outline" onclick="clearBrief()">🗑 清空</button>
+      </div>
+      <div id="briefContent"><div class="empty-state">点击上方按钮，AI 将针对该产品线的素材生成具体开发建议</div></div>
+    </div>
+
+    <!-- EXPLORE -->
+    <div class="panel" id="panel-explore">
+      <div class="panel-title" id="exploreTitle" style="color:var(--purple);">产品探索</div>
+      <div class="panel-sub">// 从社区内容发现产品机会 · 痛点 · 需求空白 · 竞品参考</div>
+      <div class="card">
+        <div class="card-title" style="color:var(--purple);">选择板块（同时扫描，广度优先）</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">每个板块约2-3分钟，最多同时选5个。AI 会跨板块综合输出产品机会地图。</div>
+        <div class="select-all-row">
+          <button class="btn-select-all" onclick="selectAllExplore(true)">全选（最多5个）</button>
+          <button class="btn-select-all" onclick="selectAllExplore(false)">取消全选</button>
+          <span class="select-count" id="exploreCount"></span>
+        </div>
+        <div id="exploreTags" class="tag-wrap"></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--blue);">探索关键词（可选，帮助 AI 聚焦方向）</div>
+        <input class="field-input" type="text" id="exploreKeyword" placeholder="例：nurse gift, dog mom mug, toddler shirt... 留空则全面扫描" />
+      </div>
+      <div class="action-row">
+        <button class="scan-btn" id="exploreBtn" style="background:var(--purple);color:#fff;" onclick="startExplore()">🔭 开始产品探索</button>
+        <button class="download-btn" id="exploreDownloadBtn" onclick="downloadResult('explore')">⬇ 下载报告</button>
+      </div>
+      <div class="progress-wrap" id="exploreProgressWrap"><div class="progress-bar" style="background:var(--purple);" id="exploreProgressBar"></div></div>
+      <div class="progress-log" id="exploreLog"></div>
+      <div id="exploreResults"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="panel" id="panel-settings">
+      <div class="panel-title" style="color:var(--yellow);">设置</div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:700;color:var(--yellow);margin-bottom:14px;">连接配置</div>
+        <label class="field-label">Cloudflare Worker 地址</label>
+        <input class="field-input" type="text" id="settingsWorker" />
+        <label class="field-label" style="margin-top:10px;">Claude API Key</label>
+        <input class="field-input" type="password" id="settingsKey" />
+        <button class="btn-yellow" onclick="saveSettings()" style="margin-top:8px;">保存</button>
+      </div>
+      <div class="card">
+        <div style="font-size:14px;font-weight:700;color:var(--yellow);margin-bottom:10px;">数据管理</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.8;">
+          素材库永久保存在本地浏览器。<br>
+          当前素材库：<strong id="settingsCount" style="color:var(--text);">0</strong> 条
+          （童装 <strong id="countKids" style="color:var(--orange);">0</strong> / 
+          西服 <strong id="countSuit" style="color:var(--blue);">0</strong> / 
+          家居 <strong id="countHome" style="color:var(--green);">0</strong> / 
+          礼品 <strong id="countGift" style="color:var(--purple);">0</strong>）
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn-outline" onclick="exportLibrary()">⬇ 备份素材库</button>
+          <button class="btn-outline" style="color:var(--red);border-color:var(--red);" onclick="clearLibConfirm()">清空素材库</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var API_KEY='', WORKER_URL='', library=[], libTypeFilter='all', libLineFilter='all';
+var currentLine='kids';
+var risingInited=false;
+var lastScanText='', lastRisingText='', lastDigText='', lastExploreText='';
+
+var LINE_CONFIG = {
+  kids: {
+    label:'童装线', color:'var(--orange)', cls:'kids',
+    subreddits: {
+      '妈妈情绪':['Mommit','breakingmom','SAHM','workingmoms','TwoXChromosomes'],
+      '孕期与婴儿':['beyondthebump','BabyBumps','babywearing','NewParents','daddit'],
+      '幼儿与学龄':['Toddlers','Preschool','Parenting','Teachers','daddit'],
+      '男童图案':['dinosaurs','SpacePorn','sharks','trucks','astrophotography'],
+      '女童图案':['Kawaii','cottagecore','cats','succulents','Watercolor'],
+      '儿童装饰产品':['NewParents','HomeDecorating','Parenting','CozyPlaces','InteriorDesign'],
+      '礼品与宠物':['GiftIdeas','pregnant','dogs','Pets','aww']
+    },
+    keywords:[
+      'mom life','boy mom','girl mom','girl dad','dog mom','cat mom','mama bear',
+      'new mom','toddler mom','tired mom','sports mom','swim mom','soccer mom',
+      'baby shower','first birthday','first day of school','toddler life',
+      'dinosaur print','monster trucks boys','shark kids','space theme boys',
+      'floral girls','rainbow girls','butterfly print','cottagecore kids',
+      'kawaii kids','animal print girls','ocean theme nursery',
+      'jungle nursery','rainbow nursery','nursery decor','kids room decor',
+      'custom baby onesie','funny toddler shirt','personalized kids gift','kids water bottle'
+    ],
+    scanColor:'kids-btn', barColor:'kids',
+    prompt_focus:'童装及儿童周边POD产品线。产品范围：儿童T恤/连体衣/亲子装、儿童房装饰（挂画/抱枕）、儿童用品（水杯/书包/午餐盒）周边、宝宝礼品套装。目标买家：美国父母（尤其妈妈），购买驱动来自三个维度——①情绪/身份（tired mom、boy mom等）②孩子场景（baby shower/生日/开学）③儿童审美偏好（恐龙/太空/流行IP如Bluey/Minecraft）。请从这三个维度出发分析，不要只聚焦妈妈情绪。'
+  },
+  suit: {
+    label:'西服定制线', color:'var(--blue)', cls:'suit',
+    subreddits: {
+      '医护职业':['nursing','medicine','residency','physicianassistant'],
+      '教育职业':['Teachers','teaching','education'],
+      '法律职业':['LawyerTalk','LawSchool','paralegal'],
+      '餐饮创业':['restaurateur','KitchenConfidential','smallbusiness'],
+      '企业主':['Entrepreneur','EntrepreneurRideAlong','smallbusiness']
+    },
+    keywords:['nurse life','teacher life','lawyer humor','small business owner','restaurant owner','graduation gift','promotion gift','professional pride','work anniversary','custom suit','tailored suit'],
+    scanColor:'suit-btn', barColor:'suit',
+    prompt_focus:'西服定制（高端定制西服、礼服、职业正装）。目标买家是有职业成就感的人群，主要场景：毕业典礼、升职庆典、婚礼、开业、重要会议、节日礼品。核心驱动：身份认同、职业自豪、成就表达。'
+  },
+  home: {
+    label:'家居线', color:'var(--green)', cls:'home',
+    subreddits: {
+      '女性家居身份':['FemaleLivingSpace','SAHM','TwoXChromosomes','AskWomen','Adulting'],
+      '男性家居身份':['malelivingspace','mancave','DIY','Frugal','battlestations'],
+      '家居风格场景':['CozyPlaces','cottagecore','minimalism','malelivingspace','DarkAcademia'],
+      '宠物家居':['dogs','cats','Pets','aww','houseplants'],
+      '功能空间':['Kitchen','BathroomDesign','organization','HomeImprovement','TinyHouses'],
+      '情绪与新家':['FirstTimeHomeBuyer','Adulting','malelivingspace','HomeImprovement','Frugal'],
+      '园艺户外':['gardening','houseplants','outdoorliving','UrbanGardening','succulents']
+    },
+    keywords:[
+      'cozy home vibes','plant mom','dog mom mug','cat mom','boho decor',
+      'farmhouse kitchen','gallery wall ideas','nursery decor','bathroom refresh',
+      'first home','housewarming gift','minimalist home','cottagecore decor',
+      'dark academia decor','reading nook','coffee station',
+      'plant lady','crazy plant lady','dog dad mug','cat lady gift',
+      'kitchen decor','bathroom decor','bedroom inspo','living room aesthetic',
+      'new homeowner','first apartment','rental decor','small space living'
+    ],
+    scanColor:'home-btn', barColor:'home',
+    prompt_focus:'家居POD产品线。产品范围：马克杯/水杯、抱枕、挂画/帆布画、毯子、浴室垫、厨房装饰、卧室装饰、植物相关小物。分析请从三个维度：①身份认同（plant mom/dog dad/cat lady等）②家居场景（nursery/厨房/浴室/卧室/户外/第一套房）③风格情绪（cozy/boho/minimalist/cottagecore/dark academia）。重点发现：有个性表达需求但市场缺乏的装饰方向、宠物主题家居机会、新家/第一套公寓的入住礼品场景。'
+  },
+  gift: {
+    label:'礼品线', color:'var(--purple)', cls:'gift',
+    subreddits: {
+      '日常送礼心理':['GiftIdeas','AskWomen','AskMen','relationship_advice','CasualConversation'],
+      '职业主题礼品':['Teachers','nursing','medicine','Entrepreneur','LawSchool'],
+      '亲情主题礼品':['Mommit','daddit','breakingmom','grandparents','AgingInPlace'],
+      '常年场景-婚恋纪念':['weddingplanning','Wedding','anniversary','EngagementRings','bridesmaids'],
+      '常年场景-宝宝生日':['pregnant','NewParents','Mommit','birthday','Frugal'],
+      '常年场景-毕业成就':['Graduation','college','HighSchool','Entrepreneur','careerguidance'],
+      '美国节日-冬季':['Christmas','Thanksgiving','halloween','ChristmasDecorations'],
+      '美国节日-春夏':['mothersday','fathersday','Valentine','Easter','BackToSchool'],
+      '个性化定制偏好':['Etsy','INEEEEDIT','shutupandtakemymoney','DIY','Gifts']
+    },
+    keywords:[
+      'gift for wife','gift for husband','anniversary gift for him','anniversary gift for her',
+      'wedding gift ideas','personalized wedding gift','custom anniversary gift',
+      'birthday gift for best friend','birthday gift for mom','birthday gift for dad',
+      'christmas gift for mom','christmas gift ideas','mothers day gift','fathers day gift',
+      'valentines day gift','easter basket ideas','graduation gift for her','graduation gift for him',
+      'teacher appreciation gift','nurse gift','nurse appreciation','doctor gift',
+      'gift for new mom','baby shower gift ideas','housewarming gift',
+      'personalized gift','custom name gift','meaningful gift','sentimental gift',
+      'gift for dog mom','gift for plant lady','gift for coffee lover','gift for book lover'
+    ],
+    scanColor:'gift-btn', barColor:'gift',
+    prompt_focus:'礼品属性POD产品线。产品范围：适合作为礼品的个性化产品（马克杯/T恤/抱枕/挂画/首饰盒/定制童装等）。分析请从三个维度：①送礼场景（婚礼/毕业/生日/节日/职业节日）②送礼人情绪（我要让ta感受到我懂ta、有意义、独一无二）③受礼人身份（新妈妈/教师/护士/狗狗爸妈/新婚夫妇）。核心洞察：礼品买家购买的不是产品本身，而是"被理解的感觉"。重点发现：哪些人群缺乏专属礼品、哪些场景市场供给同质化严重、哪些节日礼品情绪还未被满足。'
+  }
+};
+
+window.addEventListener('DOMContentLoaded', function() {
+  try {
+    var s=JSON.parse(localStorage.getItem('culture_radar_v2')||'{}');
+    if(s.apiKey&&s.workerUrl){
+      API_KEY=s.apiKey; WORKER_URL=s.workerUrl;
+      document.getElementById('settingsKey').value=s.apiKey;
+      document.getElementById('settingsWorker').value=s.workerUrl;
+      showMain();
+    }
+    if(s.library){library=s.library; updateBadge();}
+  } catch(e){}
+  switchLine('kids');
+});
+
+function switchLine(line) {
+  currentLine = line;
+  var cfg = LINE_CONFIG[line];
+  ['kids','suit','home','gift'].forEach(function(l) {
+    var btn = document.getElementById('line'+l.charAt(0).toUpperCase()+l.slice(1));
+    btn.className = 'line-btn' + (l===line ? ' active-'+l : '');
+  });
+  // Update panel titles and colors
+  ['scanTitle','risingTitle','digTitle'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if(el){ el.className='panel-title '+line; }
+  });
+  document.getElementById('scanSub').textContent = '// '+cfg.label+' · 选择板块 · 开始抓取并 AI 分析';
+  // Update scan button colors
+  ['scanBtn','risingBtn'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){ el.className='scan-btn '+line+'-btn'; }
+  });
+  // Update progress bar colors
+  ['progressBar','risingProgressBar'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){ el.className='progress-bar '+line; }
+  });
+  buildSrTags();
+  buildKwTags();
+  if(risingInited){ risingInited=false; }
+}
+
+var srSelected = { kids: new Set(['Mommit','breakingmom','Toddlers','dinosaurs','dogs']), suit: new Set(['nursing','Teachers','LawyerTalk','Entrepreneur','restaurateur']), home: new Set(['FemaleLivingSpace','malelivingspace','dogs','CozyPlaces','Parenting']), gift: new Set(['GiftIdeas','weddingplanning','Graduation','NewParents','dogs']) };
+var kwSelected = { kids: new Set(['tired mom','dinosaur print','rainbow girls','nursery decor','back to school']), suit: new Set(['nurse life','teacher life','lawyer humor','small business owner','graduation gift']), home: new Set(['plant mom','dog mom mug','cozy home vibes','cottagecore decor','housewarming gift']), gift: new Set(['anniversary gift for her','mothers day gift','personalized gift','meaningful gift','gift for dog mom']) };
+
+function buildSrTags() {
+  var cfg = LINE_CONFIG[currentLine];
+  var wrap = document.getElementById('srTagsWrap');
+  wrap.innerHTML = '';
+  var sel = srSelected[currentLine];
+  Object.entries(cfg.subreddits).forEach(function(entry) {
+    var groupName=entry[0], subs=entry[1];
+    var lbl = document.createElement('div');
+    lbl.className='group-label';
+    lbl.textContent=groupName;
+    wrap.appendChild(lbl);
+    var tw = document.createElement('div');
+    tw.className='tag-wrap';
+    subs.forEach(function(sr){
+      var t=document.createElement('span');
+      t.className='tag'+(sel.has(sr)?' '+currentLine+'-on':'');
+      t.textContent='r/'+sr;
+      t.onclick=function(){
+        if(sel.has(sr)){sel.delete(sr);t.classList.remove(currentLine+'-on');}
+        else{sel.add(sr);t.classList.add(currentLine+'-on');}
+      };
+      tw.appendChild(t);
+    });
+    wrap.appendChild(tw);
+  });
+}
+
+function buildKwTags() {
+  var cfg = LINE_CONFIG[currentLine];
+  var el = document.getElementById('kwGroup');
+  el.innerHTML='';
+  var sel = kwSelected[currentLine];
+  cfg.keywords.forEach(function(kw){
+    var t=document.createElement('span');
+    t.className='tag'+(sel.has(kw)?' '+currentLine+'-on':'');
+    t.textContent=kw;
+    t.onclick=function(){
+      if(sel.has(kw)){sel.delete(kw);t.classList.remove(currentLine+'-on');}
+      else{sel.add(kw);t.classList.add(currentLine+'-on');}
+      updateKwCount();
+    };
+    el.appendChild(t);
+  });
+  updateKwCount();
+}
+
+function initRisingTags() {
+  if(risingInited) return;
+  risingInited=true;
+  var cfg=LINE_CONFIG[currentLine];
+  var el=document.getElementById('risingTags');
+  el.innerHTML='';
+  var sel=srSelected[currentLine];
+  var allSubs=[];
+  Object.values(cfg.subreddits).forEach(function(arr){allSubs=allSubs.concat(arr);});
+  allSubs=allSubs.filter(function(v,i,a){return a.indexOf(v)===i;});
+  allSubs.forEach(function(sr){
+    var t=document.createElement('span');
+    t.className='tag'+(sel.has(sr)?' '+currentLine+'-on':'');
+    t.textContent='r/'+sr;
+    t.onclick=function(){
+      if(sel.has(sr)){sel.delete(sr);t.classList.remove(currentLine+'-on');}
+      else{sel.add(sr);t.classList.add(currentLine+'-on');}
+    };
+    el.appendChild(t);
+  });
+}
+
+async function doConnect() {
+  var worker=document.getElementById('workerInput').value.trim().replace(/\/$/,'');
+  var key=document.getElementById('apiKeyInput').value.trim();
+  if(!worker.startsWith('https://')){showToast('请输入有效的 Worker 地址','error');return;}
+  if(!key.startsWith('sk-ant')){showToast('请输入有效的 API Key','error');return;}
+  var btn=document.getElementById('connectBtn');
+  btn.disabled=true;btn.textContent='验证中...';
+  try{
+    var res=await fetch(worker,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:10,messages:[{role:'user',content:'hi'}]})});
+    if(res.ok){API_KEY=key;WORKER_URL=worker;persist();showMain();showToast('连接成功！','success');}
+    else{var e=await res.json();showToast('连接失败：'+(e.error&&e.error.message?e.error.message:res.status),'error');}
+  }catch(e){showToast('连接失败：'+e.message,'error');}
+  btn.disabled=false;btn.textContent='连接并开始使用 →';
+}
+
+function showMain(){
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  document.getElementById('statusDot').classList.add('on');
+  document.getElementById('statusTxt').textContent='API 已连接';
+  document.getElementById('settingsKey').value=API_KEY;
+  document.getElementById('settingsWorker').value=WORKER_URL;
+  updateBadge();
+}
+
+function switchTab(id,btn){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='library') renderLib();
+  if(id==='rising'){ initRisingTags(); risingInited=true; }
+  if(id==='settings'){ updateSettingsCounts(); }
+  if(id==='explore'){ initExploreTags(); }
+}
+
+function toggleTiktok(){document.getElementById('tiktokBox').classList.toggle('show',document.getElementById('tiktokCheck').checked);}
+
+async function redditFetch(sr,sort){
+  try{
+    var res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json','x-action':'reddit-posts','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},body:JSON.stringify({subreddit:sr,sort:sort||'hot'})});
+    if(!res.ok) return [];
+    var data=await res.json();
+    if(data.error) return [];
+    return data.posts||[];
+  }catch(e){return [];}
+}
+
+async function callClaude(messages,maxTokens){
+  var res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens,messages:messages})});
+  if(!res.ok){var e=await res.json();throw new Error(e.error&&e.error.message?e.error.message:'HTTP '+res.status);}
+  var data=await res.json();
+  return data.content[0].text;
+}
+
+function getSection(text,name){
+  var parts=text.split('===');
+  for(var i=0;i<parts.length;i++){
+    if(parts[i].trim()===name&&i+1<parts.length)return parts[i+1].trim();
+  }
+  return '';
+}
+
+function parseToLib(text,line){
+  var today=new Date().toLocaleDateString('zh-CN');
+  var entries=[];
+  var map={'人群身份':'identity','情绪话题':'emotion','语言提炼':'language','趋势信号':'trend'};
+  Object.entries(map).forEach(function(entry){
+    var name=entry[0],type=entry[1];
+    var sec=getSection(text,name);
+    if(!sec)return;
+    sec.split('\n').filter(function(l){return l.trim()&&!l.startsWith('（')&&!l.startsWith('格式')&&!l.startsWith('要求')&&!l.startsWith('只列')&&!l.startsWith('最多');}).forEach(function(line_){
+      var parts=line_.replace(/^[-*•\d.]\s*/,'').split('|').map(function(s){return s.trim();});
+      if(parts[0])entries.push({id:Date.now()+Math.random(),type:type,line:line,content:parts[0],meta:parts.slice(1).join(' · '),date:today});
+    });
+  });
+  return entries;
+}
+
+// ── SCAN ──
+async function startScan(){
+  if(!API_KEY||!WORKER_URL){showToast('请先完成配置','error');return;}
+  var sel=srSelected[currentLine];
+  if(!sel.size){showToast('请至少选择一个板块','error');return;}
+  var btn=document.getElementById('scanBtn');
+  btn.disabled=true;
+  showProgress('scan',true);
+  var log=makeLog('progressLog');
+  log('开始抓取 '+LINE_CONFIG[currentLine].label+' 数据...');
+  var posts=[];
+  var subs=Array.from(sel);
+  for(var i=0;i<subs.length;i++){
+    try{var d=await redditFetch(subs[i],'hot');posts=posts.concat(d);log('✓ r/'+subs[i]+': '+d.length+' 条');}
+    catch(e){log('✗ r/'+subs[i]+': '+e.message);}
+    setProgress('progressBar',10+(i/subs.length)*40);
+    await sleep(320);
+  }
+  setProgress('progressBar',55);
+  var tiktok=document.getElementById('tiktokCheck').checked?document.getElementById('tiktokText').value.trim():'';
+  if(!posts.length&&!tiktok){log('⚠ 未获取到数据');btn.disabled=false;return;}
+  log('共 '+posts.length+' 条，AI 分析中...');
+  setProgress('progressBar',62);
+  try{
+    var analysis=await runAnalysis(posts,Array.from(kwSelected[currentLine]),tiktok,currentLine);
+    setProgress('progressBar',92);
+    lastScanText=analysis;
+    var newEntries=parseToLib(analysis,currentLine);
+    library=library.concat(newEntries);
+    persist();updateBadge();
+    renderResultGrid(analysis,'scanResults');
+    document.getElementById('scanDownloadBtn').style.display='inline-block';
+    setProgress('progressBar',100);
+    log('✅ 完成！新增 '+newEntries.length+' 条素材');
+    showToast('完成！新增 '+newEntries.length+' 条素材','success');
+  }catch(e){log('✗ 失败：'+e.message);showToast('分析失败：'+e.message,'error');}
+  btn.disabled=false;
+}
+
+async function runAnalysis(posts,keywords,tiktok,line){
+  var cfg=LINE_CONFIG[line];
+  var postText=posts.slice(0,60).map(function(p){return '[r/'+p.sr+'] "'+p.title+'" ('+p.score+'↑ '+p.comments+'💬)';}).join('\n');
+  var prompt='你是专门服务于POD（Print on Demand）品牌的文化情报分析师。\n\n'
+    +'【本次分析产品线】'+cfg.prompt_focus+'\n\n'
+    +'【重要原则】只分析真实出现的数据，语言提炼必须来自帖子真实表达，不能自己造句。\n\n'
+    +'## 真实Reddit帖子（共'+posts.length+'条）：\n'+postText+'\n\n'
+    +'## 监控关键词：'+keywords.join(', ')+'\n\n'
+    +'## TikTok热词：'+(tiktok||'（本次未提供）')+'\n\n'
+    +'请严格按以下格式输出：\n\n'
+    +'===人群身份===\n格式：[人群名称] | [他们在说什么/在意什么] | [来自哪个板块] | [POD购买动机]\n最多6个\n\n'
+    +'===情绪话题===\n格式：[情绪主题] | [在帖子中的具体表现] | [热度：高/中/低] | [是否适合做设计]\n最多6个\n\n'
+    +'===语言提炼===\n格式：[英文短语] | [来源灵感] | [适合产品] | [爆款潜力：高/中]\n要求：真实自然的美式口语，2-6个单词，适合印在产品上，最多10条\n\n'
+    +'===趋势信号===\n格式：[话题] | [上升/稳定/下降] | [哪些帖子体现了这个趋势]\n最多5个\n\n'
+    +'===商机建议===\n'
+    +'方向1：[方向名称]\n目标人群：[具体描述]\n核心情绪：[他们想表达什么]\n推荐文案：\n  - "[英文1]"\n  - "[英文2]"\n  - "[英文3]"\n产品类型：[具体产品类型]\n爆款概率：[高/中]\n理由：[一句话]\n\n方向2：[同上格式]\n\n方向3：[同上格式]\n\n'
+    +'===风险提示===\n[具体说明哪些方向要避开]';
+  return await callClaude([{role:'user',content:prompt}],3000);
+}
+
+// ── RISING ──
+async function startRising(){
+  if(!API_KEY||!WORKER_URL){showToast('请先完成配置','error');return;}
+  var sel=srSelected[currentLine];
+  if(!sel.size){showToast('请至少选择一个板块','error');return;}
+  var btn=document.getElementById('risingBtn');
+  btn.disabled=true;
+  showProgress('rising',true);
+  var log=makeLog('risingLog');
+  log('抓取 Rising 上升帖...');
+  var allPosts=[];
+  var subs=Array.from(sel);
+  for(var i=0;i<subs.length;i++){
+    try{var d=await redditFetch(subs[i],'rising');allPosts=allPosts.concat(d);log('✓ r/'+subs[i]+': '+d.length+' 条');}
+    catch(e){log('✗ r/'+subs[i]+': '+e.message);}
+    setProgress('risingProgressBar',10+(i/subs.length)*50);
+    await sleep(280);
+  }
+  if(!allPosts.length){log('⚠ 未获取到数据');btn.disabled=false;return;}
+  log('共 '+allPosts.length+' 条，AI 筛选中...');
+  setProgress('risingProgressBar',68);
+  try{
+    var filtered=await filterPODPosts(allPosts,currentLine);
+    setProgress('risingProgressBar',100);
+    log('✅ 发现 '+filtered.length+' 个有POD潜力的帖子');
+    lastRisingText=filtered.map(function(p){return p.sr+' | '+p.title+' | '+p.podValue+' | '+p.textDir;}).join('\n');
+    renderRisingResults(filtered,allPosts.length);
+    document.getElementById('risingDownloadBtn').style.display='inline-block';
+  }catch(e){log('✗ 失败：'+e.message);}
+  btn.disabled=false;
+}
+
+async function filterPODPosts(posts,line){
+  var cfg=LINE_CONFIG[line];
+  var postText=posts.map(function(p){return p.id+'|r/'+p.sr+'|"'+p.title+'"|'+p.score+'↑'+p.comments+'💬';}).join('\n');
+  var prompt='你是POD设计师的选题助手，当前产品线：'+cfg.label+'（'+cfg.prompt_focus+'）\n\n从以下Reddit上升帖里找出对POD设计最有价值的帖子。\n\n判断标准：有强烈身份认同表达、有集体情绪共鸣、有可变成文案的语言、评论多=共鸣强。\n\n帖子列表：\n'+postText+'\n\n输出最有价值的帖子（最多10个），格式：\n[帖子ID] | [为什么有POD价值，一句话] | [潜在文案方向]\n\n只输出这个格式，不要其他内容。';
+  var text=await callClaude([{role:'user',content:prompt}],600);
+  var lines=text.split('\n').filter(function(l){return l.includes('|');});
+  var result=[];
+  lines.forEach(function(line_){
+    var parts=line_.split('|').map(function(s){return s.trim();});
+    var id=parts[0].replace(/^[-*•\d.\s]*/,'');
+    var post=posts.find(function(p){return p.id===id||id.includes(p.id)||p.id.includes(id);});
+    if(post)result.push(Object.assign({},post,{podValue:parts[1]||'高潜力帖子',textDir:parts[2]||'待分析'}));
+  });
+  return result.length>0?result:posts.slice(0,8).map(function(p){return Object.assign({},p,{podValue:'高评论量',textDir:'待分析'});});
+}
+
+function renderRisingResults(filtered,total){
+  var el=document.getElementById('risingResults');
+  if(!filtered.length){el.innerHTML='<div class="empty-state">未发现明显POD机会</div>';return;}
+  window._risingPosts=filtered;
+  var html='<div style="font-size:13px;color:var(--yellow);margin:18px 0 10px;font-weight:700;">⚡ 今日 POD 机会帖（'+filtered.length+'个）<span style="font-size:11px;color:var(--muted);font-weight:400;margin-left:8px;">点击深挖评论</span></div>';
+  filtered.forEach(function(p,idx){
+    html+='<div class="rising-item" data-idx="'+idx+'" data-url="'+escHtml(p.url)+'"><div style="font-size:11px;color:var(--muted);font-family:Space Mono,monospace;">r/'+escHtml(p.sr)+'<span class="pod-badge">POD潜力</span></div><div style="font-size:13px;color:var(--text);margin:5px 0;">'+escHtml(p.title)+'</div><div style="font-size:12px;color:var(--yellow);">💡 '+escHtml(p.podValue)+'</div><div style="font-size:12px;color:var(--blue);">✏️ '+escHtml(p.textDir)+'</div><div style="font-size:11px;color:var(--muted);margin-top:5px;font-family:Space Mono,monospace;">↑'+p.score+' · 💬'+p.comments+' · <span style="color:var(--yellow);">点击深挖 →</span></div></div>';
+  });
+  html+='<div style="font-size:11px;color:var(--muted);margin-top:10px;font-family:Space Mono,monospace;">共抓取 '+total+' 条上升帖，筛选出 '+filtered.length+' 个</div>';
+  el.innerHTML=html;
+  el.querySelectorAll('.rising-item').forEach(function(div){
+    div.addEventListener('click',function(){quickDig(this.getAttribute('data-url'));});
+  });
+}
+
+function quickDig(permalink){
+  switchTab('dig',document.querySelectorAll('.tab-btn')[2]);
+  document.getElementById('digUrl').value='https://www.reddit.com'+permalink;
+  showToast('已跳转，点击「深挖评论」开始分析','success');
+}
+
+// ── DIG ──
+async function startDig(){
+  if(!API_KEY||!WORKER_URL){showToast('请先完成配置','error');return;}
+  var urlInput=document.getElementById('digUrl').value.trim();
+  if(!urlInput.includes('reddit.com')){showToast('请输入有效的 Reddit 帖子链接','error');return;}
+  var btn=document.getElementById('digBtn');
+  btn.disabled=true;
+  showProgress('dig',true);
+  var log=makeLog('digLog');
+  var permalink=urlInput.replace('https://www.reddit.com','').replace(/\?.*$/,'');
+  if(!permalink.startsWith('/'))permalink='/'+permalink;
+  log('抓取帖子评论...');
+  setProgress('digProgressBar',20);
+  try{
+    var res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json','x-action':'reddit-comments','x-api-key':API_KEY,'anthropic-version':'2023-06-01'},body:JSON.stringify({permalink:permalink})});
+    var data=await res.json();
+    if(data.error)throw new Error(data.error);
+    var comments=data.comments||[];
+    log('✓ 获取到 '+comments.length+' 条评论，AI 分析中...');
+    setProgress('digProgressBar',50);
+    var analysis=await analyzeComments(urlInput,comments,currentLine);
+    setProgress('digProgressBar',92);
+    lastDigText=analysis;
+    renderResultGrid(analysis,'digResults',comments.length);
+    document.getElementById('digDownloadBtn').style.display='inline-block';
+    var newEntries=parseToLib(analysis,currentLine);
+    library=library.concat(newEntries);
+    persist();updateBadge();
+    setProgress('digProgressBar',100);
+    log('✅ 完成！新增 '+newEntries.length+' 条素材');
+    showToast('深挖完成，新增 '+newEntries.length+' 条素材','success');
+  }catch(e){log('✗ 失败：'+e.message);showToast('深挖失败：'+e.message,'error');}
+  btn.disabled=false;
+}
+
+async function analyzeComments(postUrl,comments,line){
+  var cfg=LINE_CONFIG[line];
+  var commentText=comments.slice().sort(function(a,b){return b.score-a.score;}).slice(0,40).map(function(c){return '['+c.score+'↑] "'+c.body.replace(/\n/g,' ')+'"';}).join('\n');
+  var prompt='你是POD设计语言挖掘专家。当前产品线：'+cfg.label+'（'+cfg.prompt_focus+'）\n\n从以下真实Reddit评论中提炼可以直接用在产品上的语言。\n\n帖子：'+postUrl+'\n\n真实评论（按点赞数排序）：\n'+commentText+'\n\n【重要】只分析这些真实评论，不要编造内容。\n\n请按以下格式输出：\n\n===人群身份===\n格式：[人群] | [他们在评论里说的典型表达] | [POD购买动机]\n最多4个\n\n===情绪话题===\n格式：[情绪] | [评论中的具体表现] | [强度：高/中/低]\n最多4个\n\n===语言提炼===\n格式：[英文短语，可直接用在产品上] | [来自哪条评论的灵感] | [适合产品] | [爆款潜力：高/中]\n要求：直接从评论语言改编，2-6个单词，口语化，有情绪，最多8条\n\n===趋势信号===\n格式：[信号] | [在评论中的具体体现]\n最多3个\n\n===商机建议===\n方向1：[名称]\n目标人群：[具体]\n核心情绪：[他们想表达什么]\n推荐文案：\n  - "[英文1]"\n  - "[英文2]"\n  - "[英文3]"\n产品：[具体产品类型]\n爆款概率：[高/中]\n依据：[哪些评论支持]\n\n方向2：[同上]\n\n===风险提示===\n[需要注意的点]';
+  return await callClaude([{role:'user',content:prompt}],2500);
+}
+
+// ── RENDER ──
+function renderResultGrid(text,targetId,commentCount){
+  var sections=[['人群身份','red'],['情绪话题','yellow'],['语言提炼','blue'],['趋势信号','green']];
+  var grid=sections.map(function(s){return '<div class="card"><div class="card-title '+s[1]+'">'+s[0]+'</div>'+renderSection(text,s[0])+'</div>';}).join('');
+  var sugg=getSection(text,'商机建议');
+  var risk=getSection(text,'风险提示');
+  var countNote=commentCount?' <span style="font-size:11px;color:var(--muted);font-weight:400;">（分析了 '+commentCount+' 条真实评论）</span>':'';
+  document.getElementById(targetId).innerHTML=
+    '<div style="font-size:14px;font-weight:700;color:var(--yellow);margin:18px 0 12px;">分析结果'+countNote+'</div>'
+    +'<div class="results-grid">'+grid+'</div>'
+    +(sugg?'<div class="card" style="margin-top:12px;border-left:3px solid var(--yellow);"><div class="card-title yellow">🎯 商机建议</div><div class="result-text">'+escHtml(sugg)+'</div></div>':'')
+    +(risk?'<div class="card" style="margin-top:8px;border-left:3px solid var(--red);"><div class="card-title red">⚠️ 风险提示</div><div class="result-text">'+escHtml(risk)+'</div></div>':'');
+}
+
+function renderSection(text,name){
+  var sec=getSection(text,name);
+  if(!sec)return '<div style="color:var(--muted);font-size:12px;">暂无数据</div>';
+  var lines=sec.split('\n').filter(function(l){return l.trim()&&!l.startsWith('（')&&!l.startsWith('格式')&&!l.startsWith('要求')&&!l.startsWith('只列')&&!l.startsWith('最多');});
+  return lines.map(function(line_){
+    var parts=line_.replace(/^[-*•\d.]\s*/,'').split('|').map(function(s){return s.trim();});
+    return '<div class="result-item"><div>'+escHtml(parts[0])+'</div>'+parts.slice(1).map(function(p){return '<div class="result-meta">'+escHtml(p)+'</div>';}).join('')+'</div>';
+  }).join('');
+}
+
+// ── LIBRARY ──
+function filterLib(type,line,btn){
+  libTypeFilter=type;libLineFilter=line;
+  document.querySelectorAll('.lib-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderLib();
+}
+
+function renderLib(){
+  var labels={identity:'人群',emotion:'情绪',language:'语言',trend:'趋势'};
+  var lineLabels={kids:'童装',suit:'西服',home:'家居',gift:'礼品'};
+  var list=library.filter(function(e){
+    var okType=(libTypeFilter==='all'||e.type===libTypeFilter);
+    var okLine=(libLineFilter==='all'||e.line===libLineFilter);
+    return okType&&okLine;
+  });
+  var el=document.getElementById('libEntries');
+  if(!list.length){el.innerHTML='<div class="empty-state">暂无数据</div>';return;}
+  el.innerHTML=list.slice().reverse().map(function(e){
+    var lineCls='lb-'+(e.line||'kids');
+    var lineLabel=lineLabels[e.line||'kids']||e.line||'';
+    return '<div class="lib-entry"><span class="lib-tag '+e.type+'">'+labels[e.type]+'</span><div class="lib-content"><span class="lib-line-badge '+lineCls+'">'+lineLabel+'</span>'+escHtml(e.content)+'<div class="lib-meta-txt">'+escHtml(e.meta||'')+(e.date?' · '+e.date:'')+'</div></div></div>';
+  }).join('');
+}
+
+function updateBadge(){
+  document.getElementById('libCount').textContent=library.length;
+}
+
+function updateSettingsCounts(){
+  document.getElementById('settingsCount').textContent=library.length;
+  document.getElementById('countKids').textContent=library.filter(function(e){return e.line==='kids';}).length;
+  document.getElementById('countSuit').textContent=library.filter(function(e){return e.line==='suit';}).length;
+  document.getElementById('countHome').textContent=library.filter(function(e){return e.line==='home';}).length;
+  document.getElementById('countGift').textContent=library.filter(function(e){return e.line==='gift';}).length;
+}
+
+// ── BRIEF ──
+async function generateBrief(line){
+  if(!API_KEY||!WORKER_URL){showToast('请先完成配置','error');return;}
+  var lineLib=library.filter(function(e){return e.line===line;});
+  if(!lineLib.length){showToast(LINE_CONFIG[line].label+'素材库为空，请先抓取数据','error');return;}
+  var cfg=LINE_CONFIG[line];
+  var libText=lineLib.map(function(e){return '['+e.type+'] '+e.content+' | '+e.meta;}).join('\n');
+  var el=document.getElementById('briefContent');
+  el.innerHTML='<div class="empty-state">⏳ AI 生成中，请稍候...</div>';
+  
+  var briefPrompts={
+    kids:'你是童装POD品牌的设计策略顾问。基于以下市场情报，生成本周童装/亲子装开发建议。\n\n产品范围：儿童T恤、连体衣、亲子装、宝宝礼品套装、婴儿毯、帽子等。\n核心客群：美国妈妈群体（20-40岁），购买驱动：身份表达（boy mom/girl mom等）、情感共鸣、礼品馈赠。',
+    suit:'你是西服定制POD品牌的设计策略顾问。基于以下市场情报，生成本周西服/正装定制开发建议。\n\n产品范围：定制西服、衬衫、领带、袖扣、毕业礼品、职业周边产品。\n核心客群：美国职业人士（护士/教师/律师/企业主/餐饮业主），购买驱动：职业身份认同、成就感表达、重要场合礼品。',
+    home:'你是家居POD品牌的设计策略顾问。基于以下市场情报，生成本周家居产品开发建议。\n\n产品范围：马克杯、抱枕、挂画/帆布画、毯子、浴室垫、厨房装饰、卧室装饰。\n核心客群：美国家居爱好者（宠物主人/有审美的女性/男性），购买驱动：生活态度表达、宠物爱好、家居风格化、礼品。',
+    gift:'你是POD礼品线的设计策略顾问。基于以下市场情报，生成本周礼品场景产品开发建议。\n\n产品范围：适合作为礼品的POD产品，含童装礼品套装、个性马克杯、定制抱枝、挂画、教师/护士感谢礼品等。\n核心洞察：礼品买家购买的不是产品本身，而是“我了解你”的感觉。文案需让送礼人一眼看到“这就是ta”。主要场景：baby shower、毕业典礼、婚礼、教师节、护士节、圣诞、生日。'
+  };
+  
+  var prompt=briefPrompts[line]+'\n\n【素材库数据（共'+lineLib.length+'条）】\n'+libText+'\n\n请输出「本周'+cfg.label+'开发建议报告」：\n\n'
+    +'🔥 优先开发方向（3个，每个包含：目标人群、情绪切入点、3-5条英文设计文案、适合的具体产品款式、预期爆款概率及理由）\n\n'
+    +'📈 值得测试方向（2个，每个简述：方向+文案示例+产品类型）\n\n'
+    +'💬 本周精选文案库（15条英文短句/短语，注明适合的产品类型）\n\n'
+    +'🎨 设计风格建议（针对各方向的视觉风格、配色、字体调性）\n\n'
+    +'⚠️ 本周避开（1-2个方向及具体原因）\n\n'
+    +'📋 给设计团队的4条具体执行建议';
+  
+  try{
+    var text=await callClaude([{role:'user',content:prompt}],3000);
+    el.innerHTML='<div class="card"><div style="font-size:13px;font-weight:700;color:'+cfg.color+';margin-bottom:14px;">'+cfg.label+'开发建议报告 · '+new Date().toLocaleDateString('zh-CN')+'</div><div class="result-text">'+text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--yellow)">$1</strong>')+'</div></div>';
+    showToast(cfg.label+'开发建议已生成','success');
+  }catch(e){el.innerHTML='<div class="empty-state">生成失败：'+escHtml(e.message)+'</div>';showToast('生成失败','error');}
+}
+
+function copyBrief(){var text=document.getElementById('briefContent').innerText;if(!text||text.includes('点击上方')){showToast('请先生成报告','error');return;}navigator.clipboard.writeText(text).then(function(){showToast('已复制','success');});}
+function clearBrief(){document.getElementById('briefContent').innerHTML='<div class="empty-state">点击上方按钮，AI 将针对该产品线的素材生成具体开发建议</div>';}
+
+function downloadBrief(){
+  var text=document.getElementById('briefContent').innerText;
+  if(!text||text.includes('点击上方')){showToast('请先生成报告','error');return;}
+  downloadText(text,'开发建议_'+new Date().toLocaleDateString('zh-CN')+'.txt');
+}
+
+// ── DOWNLOAD ──
+function downloadResult(type){
+  var text='', filename='';
+  var date=new Date().toLocaleDateString('zh-CN');
+  if(type==='scan'){text=lastScanText;filename=LINE_CONFIG[currentLine].label+'_数据抓取_'+date+'.txt';}
+  else if(type==='rising'){text=lastRisingText;filename=LINE_CONFIG[currentLine].label+'_每日快报_'+date+'.txt';}
+  else if(type==='dig'){text=lastDigText;filename='评论深挖_'+date+'.txt';}
+  else if(type==='explore'){text=lastExploreText;filename='产品探索_'+date+'.txt';}
+  if(!text){showToast('暂无数据可下载','error');return;}
+  downloadText(text,filename);
+}
+
+function exportLibrary(){
+  var data=JSON.stringify({exportDate:new Date().toISOString(),count:library.length,library:library},null,2);
+  downloadText(data,'素材库备份_'+new Date().toLocaleDateString('zh-CN')+'.json','application/json');
+  showToast('素材库已导出','success');
+}
+
+function exportLibraryTxt(){
+  if(!library.length){showToast('素材库为空','error');return;}
+  var lineLabels={kids:'童装',suit:'西服',home:'家居',gift:'礼品'};
+  var typeLabels={identity:'人群身份',emotion:'情绪话题',language:'语言提炼',trend:'趋势信号'};
+  var lines=['文化雷达素材库导出 · '+new Date().toLocaleDateString('zh-CN'),'共 '+library.length+' 条','='.repeat(50),''];
+  ['kids','suit','home'].forEach(function(line){
+    var items=library.filter(function(e){return e.line===line;});
+    if(!items.length)return;
+    lines.push('【'+lineLabels[line]+'线】（'+items.length+'条）');
+    lines.push('-'.repeat(30));
+    ['identity','emotion','language','trend'].forEach(function(type){
+      var sub=items.filter(function(e){return e.type===type;});
+      if(!sub.length)return;
+      lines.push('  '+typeLabels[type]+' ('+sub.length+'):');
+      sub.forEach(function(e){lines.push('    · '+e.content+(e.meta?' | '+e.meta:'')+(e.date?' ['+e.date+']':''));});
+      lines.push('');
+    });
+  });
+  downloadText(lines.join('\n'),'素材库_'+new Date().toLocaleDateString('zh-CN')+'.txt');
+  showToast('素材库已导出','success');
+}
+
+function importLibrary(input){
+  var file=input.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      if(data.library&&Array.isArray(data.library)){
+        var before=library.length;
+        library=library.concat(data.library);
+        persist();updateBadge();
+        showToast('导入成功，新增 '+(library.length-before)+' 条素材','success');
+        renderLib();
+      }else{showToast('文件格式不正确','error');}
+    }catch(er){showToast('导入失败：'+er.message,'error');}
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+function downloadText(text,filename,mime){
+  var blob=new Blob([text],{type:mime||'text/plain;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── SETTINGS ──
+function saveSettings(){
+  var worker=document.getElementById('settingsWorker').value.trim().replace(/\/$/,'');
+  var key=document.getElementById('settingsKey').value.trim();
+  if(!worker||!key){showToast('请填写完整','error');return;}
+  WORKER_URL=worker;API_KEY=key;persist();showToast('已保存','success');
+}
+
+function clearLibConfirm(){
+  if(!confirm('确认清空所有素材库数据？此操作不可恢复。'))return;
+  library=[];persist();updateBadge();
+  showToast('已清空','success');
+}
+
+// ── UTILS ──
+function persist(){localStorage.setItem('culture_radar_v2',JSON.stringify({apiKey:API_KEY,workerUrl:WORKER_URL,library:library}));}
+
+function showProgress(id,show){
+  var wrapId=id==='scan'?'progressWrap':id+'ProgressWrap';
+  var logId=id==='scan'?'progressLog':id+'Log';
+  document.getElementById(wrapId).style.display=show?'block':'none';
+  document.getElementById(logId).style.display=show?'block':'none';
+  if(show){document.getElementById(logId).innerHTML='';}
+  var barId=id==='scan'?'progressBar':id+'ProgressBar';
+  setProgress(barId,0);
+}
+
+function makeLog(logId){return function(msg){var el=document.getElementById(logId);if(el){el.innerHTML+='<div>→ '+escHtml(msg)+'</div>';el.scrollTop=el.scrollHeight;}};}
+
+function setProgress(id,pct){var el=document.getElementById(id);if(el)el.style.width=pct+'%';}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escAttr(s){return String(s||'').replace(/'/g,"\'");}
+function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'');setTimeout(function(){t.classList.add('show');},10);setTimeout(function(){t.classList.remove('show');},3000);}
+function copyWorkerCode(){var code=document.getElementById('workerCode').textContent;navigator.clipboard.writeText(code).then(function(){showToast('Worker 代码已复制','success');});}
+// PRODUCT EXPLORE ENGINE
+
+var exploreInited=false;
+var exploreSelected=new Set(['breakingmom','dinosaurs','Kawaii','CozyPlaces','GiftIdeas']);
+
+var ALL_EXPLORE_SUBS=[
+  {group:'\u7ae5\u88c5-\u5988\u5988\u60c5\u7eea',subs:['breakingmom','SAHM','workingmoms','Mommit','TwoXChromosomes']},
+  {group:'\u7ae5\u88c5-\u7537\u7ae5\u56fe\u6848',subs:['dinosaurs','SpacePorn','sharks','trucks','astrophotography']},
+  {group:'\u7ae5\u88c5-\u5973\u7ae5\u56fe\u6848',subs:['Kawaii','cottagecore','cats','succulents','Watercolor']},
+  {group:'\u7ae5\u88c5-\u573a\u666f',subs:['Toddlers','BabyBumps','Teachers','GiftIdeas','Parenting']},
+  {group:'\u897f\u670d\u5b9a\u5236\u7ebf',subs:['nursing','Teachers','LawyerTalk','Entrepreneur','restaurateur']},
+  {group:'\u5bb6\u5c45-\u98ce\u683c\u573a\u666f',subs:['FemaleLivingSpace','CozyPlaces','cottagecore','minimalism','mancave']},
+  {group:'\u5bb6\u5c45-\u5b9d\u5b60\u5ba0\u7269',subs:['dogs','cats','houseplants','gardening','aww']},
+  {group:'\u793c\u54c1-\u5e38\u5e74\u573a\u666f',subs:['weddingplanning','anniversary','pregnant','Graduation','birthday']},
+  {group:'\u793c\u54c1-\u8282\u65e5\u4e3b\u9898',subs:['mothersday','fathersday','Christmas','Valentine','Easter']},
+  {group:'\u793c\u54c1-\u804c\u4e1a\u4e3b\u9898',subs:['Teachers','nursing','Etsy','INEEEEDIT','shutupandtakemymoney']},
+  {group:'\u60c5\u7eea\u793e\u533a',subs:['introvert','ADHD','Anxiety','burnout','antiwork']}
+];
+
+function initExploreTags(){
+  if(exploreInited) return;
+  exploreInited=true;
+  var el=document.getElementById('exploreTags');
+  el.innerHTML='';
+  ALL_EXPLORE_SUBS.forEach(function(grp){
+    var sec=document.createElement('div');
+    sec.className='explore-sr-section';
+    var lbl=document.createElement('div');
+    lbl.className='explore-sr-title';
+    lbl.textContent=grp.group;
+    sec.appendChild(lbl);
+    var tw=document.createElement('div');
+    tw.className='tag-wrap';
+    grp.subs.forEach(function(sr){
+      var t=document.createElement('span');
+      var isOn=exploreSelected.has(sr);
+      t.className='tag'+(isOn?' tag-explore-on':'');
+      t.textContent='r/'+sr;
+      if(isOn) t.style.cssText='border-color:var(--purple);color:var(--purple);background:rgba(124,77,189,.08);';
+      t.onclick=function(){
+        if(exploreSelected.has(sr)){
+          exploreSelected.delete(sr);
+          t.classList.remove('tag-explore-on');
+          t.style.cssText='';
+        } else {
+          if(exploreSelected.size>=5){showToast('\u6700\u591a\u540c\u65f6\u9009 5 \u4e2a\u677f\u5757','error');return;}
+          exploreSelected.add(sr);
+          t.classList.add('tag-explore-on');
+          t.style.cssText='border-color:var(--purple);color:var(--purple);background:rgba(124,77,189,.08);';
+        }
+      };
+      tw.appendChild(t);
+    });
+    sec.appendChild(tw);
+    el.appendChild(sec);
+  });
+  updateExploreCount();
+}
+
+async function startExplore(){
+  if(!API_KEY||!WORKER_URL){showToast('\u8bf7\u5148\u5b8c\u6210\u914d\u7f6e','error');return;}
+  if(!exploreSelected.size){showToast('\u8bf7\u81f3\u5c11\u9009\u62e9\u4e00\u4e2a\u677f\u5757','error');return;}
+  var btn=document.getElementById('exploreBtn');
+  btn.disabled=true;
+  document.getElementById('exploreProgressWrap').style.display='block';
+  document.getElementById('exploreLog').style.display='block';
+  document.getElementById('exploreLog').innerHTML='';
+  document.getElementById('exploreResults').innerHTML='';
+  setProgress('exploreProgressBar',0);
+  var log=makeLog('exploreLog');
+  var keyword=document.getElementById('exploreKeyword').value.trim();
+  var subs=Array.from(exploreSelected);
+  log('\u5f00\u59cb\u5e7f\u5ea6\u626b\u63cf '+subs.length+' \u4e2a\u677f\u5757...');
+  var allData={};
+  for(var i=0;i<subs.length;i++){
+    var sr=subs[i];
+    var posts=await redditFetch(sr,'hot');
+    var rising=await redditFetch(sr,'rising');
+    allData[sr]={hot:posts,rising:rising};
+    if(posts.length>0||rising.length>0){
+      log('\u2713 r/'+sr+': \u70ed\u95e8 '+posts.length+' \u6761 + \u4e0a\u5347 '+rising.length+' \u6761');
+    } else {
+      log('\u26a0 r/'+sr+': \u672a\u53d6\u5230\u6570\u636e\uff0c\u5df2\u8df3\u8fc7');
+    }
+    setProgress('exploreProgressBar',10+(i/subs.length)*50);
+    await sleep(300);
+  }
+  var totalPosts=Object.values(allData).reduce(function(acc,d){return acc+d.hot.length+d.rising.length;},0);
+  setProgress('exploreProgressBar',65);
+  if(totalPosts===0){
+    log('\u26a0 \u6ca1\u6709\u53d6\u5230\u4efb\u4f55\u6570\u636e\uff0c\u8bf7\u68c0\u67e5Worker\u5730\u5740\u662f\u5426\u6b63\u786e');
+    btn.disabled=false; return;
+  }
+  log('\u5171\u83b7\u53d6 '+totalPosts+' \u6761\u5e16\u5b50\uff0cAI \u4ea7\u54c1\u673a\u4f1a\u5206\u6790\u4e2d...');
+  try{
+    var report=await runExploreAnalysis(allData,keyword);
+    setProgress('exploreProgressBar',95);
+    lastExploreText=report;
+    renderExploreResults(report,subs);
+    document.getElementById('exploreDownloadBtn').style.display='inline-block';
+    setProgress('exploreProgressBar',100);
+    log('\u2705 \u5b8c\u6210\uff01\u4ea7\u54c1\u673a\u4f1a\u5730\u56fe\u5df2\u751f\u6210');
+    showToast('\u4ea7\u54c1\u63a2\u7d22\u5b8c\u6210','success');
+  } catch(e){log('\u2717 \u5931\u8d25\uff1a'+e.message);showToast('\u63a2\u7d22\u5931\u8d25','error');}
+  btn.disabled=false;
+}
+
+async function runExploreAnalysis(allData,keyword){
+  var lines=[];
+  Object.entries(allData).forEach(function(entry){
+    var sr=entry[0], data=entry[1];
+    var topPosts=data.hot.slice(0,12).concat(data.rising.slice(0,5));
+    lines.push('=== r/'+sr+' ===');
+    topPosts.forEach(function(p){lines.push('  ['+p.score+'\u2191 '+p.comments+'\ud83d\udcac] '+p.title);});
+  });
+  var dataText=lines.join('\n');
+  var focusNote=keyword?'\u7528\u6237\u5173\u6ce8\u65b9\u5411\uff1a'+keyword+'\n\n':'\u5168\u9762\u6269\u5c55\u626b\u63cf\uff0c\u4e0d\u9650\u7c7b\u578b\u3002\n\n';
+  var prompt='\u4f60\u662f\u4e00\u4e2aPOD\u4ea7\u54c1\u5f00\u53d1\u987e\u95ee\uff0c\u64c5\u957f\u4ece\u793e\u533a\u5185\u5bb9\u53d1\u73b0\u771f\u5b9e\u7684\u5e02\u573a\u673a\u4f1a\u3002\nPOD\u4ea7\u54c1\u7ebf\u5305\u542b\uff1a\u7ae5\u88c5/\u4eb2\u5b50\u88c5\u3001\u5b9a\u5236\u897f\u670d/\u6b63\u88c5\u3001\u5bb6\u5c45\u88c5\u9970\uff08\u9a6c\u514b\u676f/\u62b1\u679d/\u6302\u753b\u7b49\uff09\u3001\u793c\u54c1\u3002\n\n'+focusNote
+    +'\u4ee5\u4e0b\u662f\u771f\u5b9eReddit\u793e\u533a\u6570\u636e\uff1a\n'+dataText+'\n\n'
+    +'\u8bf7\u57281800\u5b57\u5185\u8f93\u51fa\u4ee5\u4e0b\u516d\u4e2a\u6a21\u5757\uff08\u4e25\u683c\u6309\u683c\u5f0f\uff09\uff1a\n\n'
+    +'===\u75db\u70b9\u6e05\u5355===\n\u683c\u5f0f\uff1a\u75db\u70b9\u63cf\u8ff0 | \u51fa\u73b0\u9891\u7387\uff1a\u9ad8/\u4e2d | \u201c\u539f\u8bdd\u5f15\u7528\u201d | \u6240\u5c5e\u677f\u5757\n\u8981\u6c42\uff1a\u5fc5\u987b\u6709\u539f\u8bdd\u5f15\u7528\uff0c\u4e0d\u80fd\u7f16\u9020\u3002\u6700\u591a5\u4e2a\n\n'
+    +'===\u9700\u6c42\u7a7a\u767d===\n\u683c\u5f0f\uff1a\u7a7a\u767d\u63cf\u8ff0 | \u73b0\u6709\u4ea7\u54c1\u7f3a\u5931\u4ec0\u4e48 | \u5546\u673a\u5927\u5c0f\uff1a\u5927/\u4e2d | \u8bc4\u4f30\u4f9d\u636e\n\u6700\u591a4\u4e2a\n\n'
+    +'===\u5177\u4f53\u4ea7\u54c1\u5efa\u8bae===\n\u683c\u5f0f\uff1a\u4ea7\u54c1\u7c7b\u578b | \u76ee\u6807\u4eba\u7fa4 | \u5f00\u53d1\u7406\u7531 | \u793a\u4f8b\u82f1\u6587\u6587\u6848 | \u6f5c\u529b\uff1a\u9ad8/\u4e2d\n\u8981\u6c42\uff1a\u5177\u4f53\u5230\u4ea7\u54c1\u7c7b\u578b\uff08T\u6064/\u9a6c\u514b\u676f/\u62b1\u679d/\u6302\u753b\u7b49\uff09\u3002\u6700\u591a6\u4e2a\n\n'
+    +'===\u8bbe\u8ba1\u65b9\u5411===\n\u683c\u5f0f\uff1a\u8bbe\u8ba1\u98ce\u683c | \u6838\u5fc3\u89c6\u89c9\u5143\u7d20 | 2-3\u6761\u82f1\u6587\u793a\u4f8b\u6587\u6848 | \u9002\u5408\u4ea7\u54c1\u7ebf\n\u6700\u591a4\u4e2a\n\n'
+    +'===\u7ade\u54c1\u53c2\u8003===\n\u683c\u5f0f\uff1a\u5e02\u573a\u5df2\u6709\u7684\u65b9\u5411 | \u901a\u5e38\u98ce\u683c\u4e0e\u6587\u6848 | \u5dee\u5f02\u5316\u5efa\u8bae\n\u6700\u591a3\u4e2a\n\n'
+    +'===\u7efc\u5408\u5224\u65ad===\n\u57fa\u4e8e\u4ee5\u4e0a\u5168\u90e8\u6570\u636e\uff0c\u7ed9\u51fa\u672c\u6b21\u63a2\u7d22\u7684\u6700\u91cd\u8981\u53d1\u73b0\uff08100\u5b57\u5185\uff09\uff0c\u548c\u4e0b\u5468\u4f18\u5148\u5f00\u53d1\u7684 Top 3 \u4ea7\u54c1\u65b9\u5411\u3002';
+  return await callClaude([{role:'user',content:prompt}],3500);
+}
+
+function renderOppSection(text){
+  var sec=getSection(text,'\u4ea7\u54c1\u673a\u4f1a');
+  if(!sec) return '';
+  return '<div class="opp-map" style="margin-top:16px;"><div class="opp-map-title">\ud83d\udcca \u4ea7\u54c1\u673a\u4f1a\u6458\u8981</div><div class="result-text" style="font-size:12px;line-height:1.9;">'+escHtml(sec)+'</div></div>';
+}
+
+function renderExploreResults(text,subs){
+  var el=document.getElementById('exploreResults');
+  var sections=[
+    ['\u75db\u70b9\u6e05\u5355','pain','\ud83e\udee4 \u5ba2\u6237\u75db\u70b9'],
+    ['\u9700\u6c42\u7a7a\u767d','gap','\ud83c\udfaf \u5e02\u573a\u7a7a\u767d'],
+    ['\u5177\u4f53\u4ea7\u54c1\u5efa\u8bae','product','\ud83d\udce6 \u4ea7\u54c1\u5efa\u8bae'],
+    ['\u8bbe\u8ba1\u65b9\u5411','design','\ud83c\udfa8 \u8bbe\u8ba1\u65b9\u5411'],
+    ['\u7ade\u54c1\u53c2\u8003','compete','\ud83d\udd0d \u7ade\u54c1\u53c2\u8003']
+  ];
+  var cards=sections.map(function(s){
+    var sec=getSection(text,s[0]);
+    var items=sec
+      ?sec.split('\n').filter(function(l){return l.trim()&&!l.startsWith('\u683c\u5f0f')&&!l.startsWith('\u8981\u6c42')&&!l.startsWith('\u6700\u591a');})
+        .map(function(line){
+          var parts=line.replace(/^[-*\u2022\d.]\s*/,'').split('|').map(function(x){return x.trim();});
+          var scoreText=parts[1]||'';
+          var score=scoreText.includes('\u9ad8')||scoreText.includes('\u5927')?'high':scoreText.includes('\u4e2d')?'mid':'';
+          return '<div class="opp-item">'+escHtml(parts[0])
+            +(score?'<span class="opp-score '+score+'">'+escHtml(scoreText)+'</span>':'')
+            +parts.slice(score?2:1).map(function(p){return '<div class="result-meta">'+escHtml(p)+'</div>';}).join('')
+            +'</div>';
+        }).join('')
+      :'<div style="color:var(--muted);font-size:12px;">\u6682\u65e0\u6570\u636e</div>';
+    return '<div class="opp-card"><div class="opp-card-head '+s[1]+'">'+s[2]+'</div>'+items+'</div>';
+  });
+  var summary=getSection(text,'\u7efc\u5408\u5224\u65ad');
+  var scanNote='<div style="font-size:11px;color:var(--muted);font-family:Space Mono,monospace;margin-bottom:14px;">\u672c\u6b21\u626b\u63cf '+subs.length+' \u4e2a\u677f\u5757\uff1a'+subs.map(function(s){return 'r/'+s;}).join(' \xb7 ')+'</div>';
+  el.innerHTML=scanNote+'<div class="opp-grid">'+cards.join('')+'</div>'
+    +(summary?'<div class="opp-map" style="margin-top:16px;"><div class="opp-map-title">\ud83d\udca1 \u7efc\u5408\u5224\u65ad</div><div class="result-text" style="font-size:13px;line-height:1.9;">'+escHtml(summary)+'</div></div>':'');
+}
+
+// ── SELECT ALL FUNCTIONS ──
+
+function updateSrCount(){
+  var sel=srSelected[currentLine];
+  var cfg=LINE_CONFIG[currentLine];
+  var total=0;
+  Object.values(cfg.subreddits).forEach(function(arr){total+=arr.length;});
+  var el=document.getElementById('srCount');
+  if(el) el.textContent='已选 '+sel.size+' / '+total;
+}
+
+function updateKwCount(){
+  var sel=kwSelected[currentLine];
+  var cfg=LINE_CONFIG[currentLine];
+  var el=document.getElementById('kwCount');
+  if(el) el.textContent='已选 '+sel.size+' / '+cfg.keywords.length;
+}
+
+function updateRisingCount(){
+  var sel=srSelected[currentLine];
+  var cfg=LINE_CONFIG[currentLine];
+  var total=0;
+  Object.values(cfg.subreddits).forEach(function(arr){total+=arr.length;});
+  var el=document.getElementById('risingCount');
+  if(el) el.textContent='已选 '+sel.size+' / '+total;
+}
+
+function updateExploreCount(){
+  var el=document.getElementById('exploreCount');
+  if(el) el.textContent='已选 '+exploreSelected.size+' / 5';
+}
+
+function selectAllSubs(selectAll){
+  var cfg=LINE_CONFIG[currentLine];
+  var sel=srSelected[currentLine];
+  var onCls=currentLine+'-on';
+  if(selectAll){
+    Object.values(cfg.subreddits).forEach(function(arr){arr.forEach(function(sr){sel.add(sr);});});
+  } else {
+    sel.clear();
+  }
+  // Re-render tags
+  buildSrTags();
+  updateSrCount();
+}
+
+function selectAllKws(selectAll){
+  var cfg=LINE_CONFIG[currentLine];
+  var sel=kwSelected[currentLine];
+  if(selectAll){
+    cfg.keywords.forEach(function(kw){sel.add(kw);});
+  } else {
+    sel.clear();
+  }
+  buildKwTags();
+  updateKwCount();
+}
+
+function selectAllRising(selectAll){
+  var cfg=LINE_CONFIG[currentLine];
+  var sel=srSelected[currentLine];
+  if(selectAll){
+    Object.values(cfg.subreddits).forEach(function(arr){arr.forEach(function(sr){sel.add(sr);});});
+  } else {
+    sel.clear();
+  }
+  // Re-render rising tags
+  risingInited=false;
+  initRisingTags();
+  updateRisingCount();
+}
+
+function selectAllExplore(selectAll){
+  var allSubs=[];
+  ALL_EXPLORE_SUBS.forEach(function(grp){
+    grp.subs.forEach(function(sr){if(allSubs.indexOf(sr)<0) allSubs.push(sr);});
+  });
+  if(selectAll){
+    // Select first 5 unique subs
+    exploreSelected.clear();
+    for(var i=0;i<Math.min(5,allSubs.length);i++) exploreSelected.add(allSubs[i]);
+    showToast('\u5df2\u9009\u524d 5 \u4e2a\u677f\u5757','success');
+  } else {
+    exploreSelected.clear();
+  }
+  // Re-render explore tags
+  exploreInited=false;
+  initExploreTags();
+  updateExploreCount();
+}
+
+</script>
+</body>
+</html>
